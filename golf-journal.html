@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Golf Journal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #2D5016;
+  --green-mid: #4A7C2F;
+  --green-light: #8BB87A;
+  --cream: #F5F0E8;
+  --cream-dark: #EDE7D6;
+  --tan: #C4A882;
+  --tan-dark: #9E825A;
+  --text: #1A1A1A;
+  --text-mid: #4A4A4A;
+  --text-muted: #888;
+  --white: #FFFFFF;
+  --danger: #C0392B;
+  --teal: #1D6A5A;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* Header */
+.header {
+  background: var(--green);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.4rem;
+  color: var(--cream);
+  letter-spacing: 0.01em;
+}
+.header-sub {
+  font-size: 11px;
+  color: var(--green-light);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* Nav */
+.nav {
+  display: flex;
+  background: var(--green);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.nav button {
+  flex: 1;
+  min-width: 80px;
+  padding: 12px 8px;
+  background: none;
+  border: none;
+  color: var(--green-light);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+.nav button.active {
+  color: var(--cream);
+  border-bottom-color: var(--tan);
+}
+.nav button:hover:not(.active) { color: var(--cream); }
+
+/* Pages */
+.page { display: none; padding: 1.25rem; max-width: 680px; margin: 0 auto; }
+.page.active { display: block; }
+
+/* Cards */
+.card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(0,0,0,0.07);
+}
+.card-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.05rem;
+  color: var(--green);
+  margin-bottom: 0.85rem;
+}
+
+/* Form elements */
+label {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+  margin-top: 14px;
+}
+label:first-of-type { margin-top: 0; }
+input[type=text], input[type=number], textarea, select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #DDD;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--cream);
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+}
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--green-mid);
+  background: var(--white);
+}
+textarea { min-height: 100px; resize: vertical; line-height: 1.6; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 480px) { .row2 { grid-template-columns: 1fr; } }
+
+/* Buttons */
+.btn-primary {
+  width: 100%;
+  padding: 13px;
+  background: var(--green);
+  color: var(--cream);
+  border: none;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background 0.15s;
+  letter-spacing: 0.02em;
+}
+.btn-primary:hover { background: var(--green-mid); }
+.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-secondary {
+  padding: 8px 16px;
+  background: none;
+  border: 1px solid #CCC;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: var(--text-mid);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-secondary:hover { border-color: var(--green-mid); color: var(--green); }
+
+/* Setup page */
+.setup-step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--cream-dark);
+}
+.setup-step:last-child { border-bottom: none; }
+.step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--green);
+  color: var(--cream);
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.step-body { flex: 1; }
+.step-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.step-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 8px; }
+.connect-row { display: flex; gap: 8px; }
+.connect-row input { flex: 1; }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-left: 8px;
+}
+.badge-ok { background: #E8F5E2; color: #2D6A0A; }
+.badge-err { background: #FDECEA; color: #B71C1C; }
+.api-info { font-size: 12px; color: var(--text-muted); line-height: 1.5; background: var(--cream); border-radius: 8px; padding: 10px 12px; margin-top: 8px; }
+.api-info code { font-family: monospace; font-size: 11px; background: rgba(0,0,0,0.06); padding: 1px 5px; border-radius: 3px; }
+
+/* History */
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+.stat-box { background: var(--green); border-radius: 10px; padding: 14px; text-align: center; }
+.stat-num { font-family: 'DM Serif Display', serif; font-size: 1.6rem; color: var(--cream); }
+.stat-lbl { font-size: 10px; color: var(--green-light); text-transform: uppercase; letter-spacing: 0.07em; margin-top: 3px; }
+.entry-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 10px;
+  border: 1px solid rgba(0,0,0,0.07);
+}
+.entry-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.entry-course { font-size: 15px; font-weight: 500; color: var(--text); }
+.entry-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.entry-score-pill {
+  background: var(--cream-dark);
+  color: var(--tan-dark);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.entry-notes { font-size: 14px; color: var(--text-mid); line-height: 1.6; }
+.entry-qa { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--cream-dark); }
+.qa-row { font-size: 12px; color: var(--text-muted); margin-bottom: 3px; }
+.qa-row span { color: var(--text-mid); }
+.del-btn { background: none; border: none; color: #CCC; cursor: pointer; font-size: 16px; padding: 2px 6px; border-radius: 4px; line-height: 1; }
+.del-btn:hover { color: var(--danger); }
+.toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+.sync-status { font-size: 12px; color: var(--text-muted); }
+
+/* Brief */
+.brief-controls { display: flex; gap: 8px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.brief-section { margin-bottom: 1.5rem; }
+.brief-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.brief-label::after { content: ''; flex: 1; height: 1px; background: var(--cream-dark); }
+.brief-point {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 11px 14px;
+  background: var(--white);
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.07);
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: var(--text-mid);
+  line-height: 1.6;
+}
+.brief-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tan);
+  margin-top: 7px;
+  flex-shrink: 0;
+}
+.brief-dot.green { background: var(--teal); }
+.brief-dot.red { background: var(--danger); }
+
+/* Loading / empty */
+.loading { text-align: center; padding: 2.5rem 1rem; color: var(--text-muted); font-size: 14px; }
+.spinner {
+  display: inline-block;
+  width: 20px; height: 20px;
+  border: 2px solid #DDD;
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty { text-align: center; padding: 3rem 1rem; color: var(--text-muted); font-size: 14px; }
+.empty-icon { font-size: 2.5rem; margin-bottom: 10px; }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--green);
+  color: var(--cream);
+  padding: 10px 22px;
+  border-radius: 24px;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.25s;
+  pointer-events: none;
+  z-index: 9999;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; }
+
+/* Log page */
+.form-section-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--green-mid);
+  margin: 1.25rem 0 0.75rem;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--cream-dark);
+}
+.form-section-label:first-child { margin-top: 0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">Golf Journal</div>
+    <div class="header-sub">Post-round notes &amp; insights</div>
+  </div>
+</div>
+
+<nav class="nav">
+  <button class="active" onclick="showPage('setup',this)">Setup</button>
+  <button onclick="showPage('log',this)">Log round</button>
+  <button onclick="showPage('history',this)">History</button>
+  <button onclick="showPage('brief',this)">Pre-round brief</button>
+</nav>
+
+<!-- SETUP -->
+<div id="page-setup" class="page active">
+  <div class="card">
+    <div class="card-title">One-time setup</div>
+
+    <div class="setup-step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">Create your Google Sheet</div>
+        <div class="step-desc">Row 1 must have these exact column headers:</div>
+        <div class="api-info"><code>Date &nbsp;|&nbsp; Course &nbsp;|&nbsp; Score &nbsp;|&nbsp; Conditions &nbsp;|&nbsp; Notes &nbsp;|&nbsp; Best part &nbsp;|&nbsp; Biggest miss &nbsp;|&nbsp; Carry forward</code></div>
+      </div>
+    </div>
+
+    <div class="setup-step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">Create your Google Form (for mobile logging)</div>
+        <div class="step-desc">Add 8 fields matching the columns above. In the Form go to <strong>Responses → Link to Sheets</strong> and connect it to your Sheet. This is your phone input.</div>
+      </div>
+    </div>
+
+    <div class="setup-step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">Make the Sheet publicly readable</div>
+        <div class="step-desc">Share → Anyone with the link → <strong>Viewer</strong>. This lets the app read it without a login.</div>
+      </div>
+    </div>
+
+    <div class="setup-step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-title">Connect your Sheet</div>
+        <div class="step-desc">Paste your Sheet ID — the string between <code>/d/</code> and <code>/edit</code> in your Sheet URL.</div>
+        <div class="connect-row">
+          <input type="text" id="sheet-id-input" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" />
+          <button class="btn-secondary" onclick="connectSheet()">Connect</button>
+          <span id="connect-badge" style="display:none;"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="setup-step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <div class="step-title">Add your Anthropic API key (for AI brief)</div>
+        <div class="step-desc">Get a free key at <a href="https://console.anthropic.com" target="_blank" style="color:var(--green);">console.anthropic.com</a>. Stored locally in your browser — never sent anywhere except Anthropic's API.</div>
+        <input type="text" id="api-key-input" placeholder="sk-ant-..." style="margin-top:6px;" />
+        <button class="btn-secondary" style="margin-top:8px;" onclick="saveApiKey()">Save key</button>
+        <div id="api-key-status" style="font-size:12px;color:var(--text-muted);margin-top:6px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOG -->
+<div id="page-log" class="page">
+  <div class="card">
+    <div class="form-section-label">Round details</div>
+    <div class="row2">
+      <div><label>Course</label><input type="text" id="course" placeholder="Hawk Ridge Golf Club" /></div>
+      <div><label>Date</label><input type="text" id="date" placeholder="Apr 10, 2026" /></div>
+    </div>
+    <div class="row2" style="margin-top:12px;">
+      <div><label>Score</label><input type="number" id="score" placeholder="84" /></div>
+      <div><label>Conditions</label><input type="text" id="conditions" placeholder="Windy, soft greens..." /></div>
+    </div>
+
+    <div class="form-section-label" style="margin-top:1.25rem;">Round notes</div>
+    <textarea id="notes" placeholder="What happened out there? What worked, what didn't, what did you notice..."></textarea>
+
+    <div class="form-section-label" style="margin-top:1.25rem;">Quick check-in</div>
+    <label>Best part of the round</label>
+    <input type="text" id="q1" placeholder="Approach shots, putting rhythm..." />
+    <label>Biggest miss or mistake pattern</label>
+    <input type="text" id="q2" placeholder="Pulling left under pressure..." />
+    <label>One thing to carry into next round</label>
+    <input type="text" id="q3" placeholder="Pause at the top, trust the release..." />
+
+    <button class="btn-primary" id="save-btn" onclick="saveRound()">Save round</button>
+  </div>
+  <div style="text-align:center;font-size:12px;color:var(--text-muted);padding-bottom:1rem;">
+    Prefer your phone? Use your <strong>Google Form</strong> — it auto-populates the Sheet instantly.
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div id="page-history" class="page">
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-num" id="stat-rounds">—</div><div class="stat-lbl">Rounds</div></div>
+    <div class="stat-box"><div class="stat-num" id="stat-avg">—</div><div class="stat-lbl">Avg score</div></div>
+    <div class="stat-box"><div class="stat-num" id="stat-recent">—</div><div class="stat-lbl">Last score</div></div>
+  </div>
+  <div class="toolbar">
+    <button class="btn-secondary" onclick="fetchAndRender()">Sync from Sheet</button>
+    <span class="sync-status" id="sync-status"></span>
+  </div>
+  <div id="history-list"></div>
+</div>
+
+<!-- BRIEF -->
+<div id="page-brief" class="page">
+  <div class="brief-controls">
+    <button class="btn-secondary" onclick="generateBrief(true)">Regenerate brief</button>
+    <button class="btn-secondary" onclick="fetchThenBrief()">Sync + regenerate</button>
+  </div>
+  <div id="brief-content"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let entries = [];
+let briefCache = null;
+
+// ── Storage helpers ──────────────────────────────────────────────
+function store(key, val) { try { localStorage.setItem(key, typeof val === 'string' ? val : JSON.stringify(val)); } catch(e){} }
+function retrieve(key) { try { return localStorage.getItem(key); } catch(e){ return null; } }
+
+// ── Init ─────────────────────────────────────────────────────────
+function init() {
+  const sid = retrieve('gj-sheet-id');
+  if (sid) document.getElementById('sheet-id-input').value = sid;
+  const key = retrieve('gj-api-key');
+  if (key) {
+    document.getElementById('api-key-input').value = key;
+    document.getElementById('api-key-status').textContent = 'API key saved.';
+  }
+  const cached = retrieve('gj-entries');
+  if (cached) { try { entries = JSON.parse(cached); } catch(e){ entries = []; } }
+  if (sid) setBadge('connected');
+}
+
+// ── Nav ──────────────────────────────────────────────────────────
+function showPage(p, btn) {
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(el => el.classList.remove('active'));
+  document.getElementById('page-' + p).classList.add('active');
+  btn.classList.add('active');
+  if (p === 'history') renderHistory();
+  if (p === 'brief') renderBrief();
+}
+
+// ── Toast ────────────────────────────────────────────────────────
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── API key ──────────────────────────────────────────────────────
+function saveApiKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (!key) return;
+  store('gj-api-key', key);
+  document.getElementById('api-key-status').textContent = 'API key saved.';
+  toast('API key saved');
+}
+
+// ── Sheet connect ────────────────────────────────────────────────
+function setBadge(state) {
+  const b = document.getElementById('connect-badge');
+  b.style.display = 'inline-flex';
+  b.className = 'badge ' + (state === 'connected' ? 'badge-ok' : 'badge-err');
+  b.textContent = state === 'connected' ? '✓ Connected' : '✗ Error — check ID & sharing';
+}
+
+async function connectSheet() {
+  const sid = document.getElementById('sheet-id-input').value.trim();
+  if (!sid) { toast('Paste your Sheet ID first'); return; }
+  store('gj-sheet-id', sid);
+  const ok = await fetchSheet(sid);
+  setBadge(ok ? 'connected' : 'error');
+  if (ok) toast('Connected — ' + entries.length + ' rounds loaded');
+}
+
+async function fetchSheet(sid) {
+  sid = sid || retrieve('gj-sheet-id');
+  if (!sid) return false;
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${sid}/export?format=csv&gid=0`;
+    const resp = await fetch(url);
+    if (!resp.ok) return false;
+    const csv = await resp.text();
+    const rows = parseCSV(csv);
+    if (rows.length < 2) return true;
+    const headers = rows[0].map(h => h.toLowerCase().trim());
+    const parsed = rows.slice(1)
+      .filter(r => r.some(c => c.trim()))
+      .map(r => {
+        const obj = {};
+        headers.forEach((h, i) => obj[h] = (r[i] || '').trim());
+        return {
+          id: Math.random(),
+          date: obj['date'] || '',
+          course: obj['course'] || '',
+          score: obj['score'] || '',
+          conditions: obj['conditions'] || '',
+          notes: obj['notes'] || '',
+          q1: obj['best part'] || '',
+          q2: obj['biggest miss'] || '',
+          q3: obj['carry forward'] || '',
+          source: 'sheet'
+        };
+      }).reverse();
+    const localOnly = entries.filter(e => e.source === 'local');
+    entries = [...parsed, ...localOnly];
+    store('gj-entries', entries);
+    return true;
+  } catch(e) { return false; }
+}
+
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = '', inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQ) {
+      if (c === '"' && text[i+1] === '"') { field += '"'; i++; }
+      else if (c === '"') inQ = false;
+      else field += c;
+    } else {
+      if (c === '"') inQ = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\n' || (c === '\r' && text[i+1] === '\n')) {
+        row.push(field); field = '';
+        rows.push(row); row = [];
+        if (c === '\r') i++;
+      } else field += c;
+    }
+  }
+  if (field || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+async function fetchAndRender() {
+  document.getElementById('sync-status').textContent = 'Syncing...';
+  const ok = await fetchSheet();
+  document.getElementById('sync-status').textContent = ok ? 'Synced ✓' : 'Could not reach Sheet';
+  briefCache = null;
+  renderHistory();
+}
+
+async function fetchThenBrief() {
+  await fetchSheet();
+  briefCache = null;
+  generateBrief(true);
+}
+
+// ── Save round ───────────────────────────────────────────────────
+async function saveRound() {
+  const notes = document.getElementById('notes').value.trim();
+  if (!notes) { toast('Add round notes first'); return; }
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  const entry = {
+    id: Date.now(),
+    date: document.getElementById('date').value || new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
+    course: document.getElementById('course').value || 'Unknown course',
+    score: document.getElementById('score').value || '',
+    conditions: document.getElementById('conditions').value || '',
+    notes,
+    q1: document.getElementById('q1').value,
+    q2: document.getElementById('q2').value,
+    q3: document.getElementById('q3').value,
+    source: 'local'
+  };
+  entries.unshift(entry);
+  store('gj-entries', entries);
+  briefCache = null;
+  ['course','date','score','conditions','notes','q1','q2','q3'].forEach(id => document.getElementById(id).value = '');
+  btn.disabled = false; btn.textContent = 'Save round';
+  toast('Round saved');
+}
+
+// ── History ──────────────────────────────────────────────────────
+function renderHistory() {
+  const scores = entries.map(e => parseFloat(e.score)).filter(s => !isNaN(s));
+  const avg = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : '—';
+  document.getElementById('stat-rounds').textContent = entries.length || '—';
+  document.getElementById('stat-avg').textContent = avg;
+  document.getElementById('stat-recent').textContent = entries[0]?.score || '—';
+  const list = document.getElementById('history-list');
+  if (!entries.length) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">⛳</div>No rounds yet. Connect your Sheet or log one manually.</div>';
+    return;
+  }
+  list.innerHTML = entries.map(e => `
+    <div class="entry-card">
+      <div class="entry-top">
+        <div>
+          <div class="entry-course">${e.course}</div>
+          <div class="entry-meta">${e.date}${e.conditions ? ' · ' + e.conditions : ''}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          ${e.score ? `<span class="entry-score-pill">${e.score}</span>` : ''}
+          ${e.source === 'local' ? `<button class="del-btn" onclick="deleteEntry(${e.id})" title="Delete">×</button>` : ''}
+        </div>
+      </div>
+      <div class="entry-notes">${e.notes}</div>
+      ${e.q1 || e.q2 || e.q3 ? `
+      <div class="entry-qa">
+        ${e.q1 ? `<div class="qa-row">Best: <span>${e.q1}</span></div>` : ''}
+        ${e.q2 ? `<div class="qa-row">Miss: <span>${e.q2}</span></div>` : ''}
+        ${e.q3 ? `<div class="qa-row">Carry: <span>${e.q3}</span></div>` : ''}
+      </div>` : ''}
+    </div>
+  `).join('');
+}
+
+function deleteEntry(id) {
+  entries = entries.filter(e => e.id !== id);
+  store('gj-entries', entries);
+  briefCache = null;
+  renderHistory();
+  toast('Entry deleted');
+}
+
+// ── Brief ────────────────────────────────────────────────────────
+function renderBrief() {
+  if (briefCache) { renderBriefContent(briefCache); return; }
+  if (!entries.length) {
+    document.getElementById('brief-content').innerHTML = '<div class="empty"><div class="empty-icon">📋</div>No rounds found. Sync your Sheet first.</div>';
+    return;
+  }
+  generateBrief(false);
+}
+
+async function generateBrief(force) {
+  if (!force && briefCache) { renderBriefContent(briefCache); return; }
+  if (!entries.length) {
+    document.getElementById('brief-content').innerHTML = '<div class="empty"><div class="empty-icon">📋</div>No rounds found. Sync your Sheet first.</div>';
+    return;
+  }
+  const apiKey = retrieve('gj-api-key');
+  if (!apiKey) {
+    document.getElementById('brief-content').innerHTML = '<div class="empty"><div class="empty-icon">🔑</div>Add your Anthropic API key in Setup to use this feature.</div>';
+    return;
+  }
+  document.getElementById('brief-content').innerHTML = '<div class="loading"><span class="spinner"></span>Analyzing your rounds...</div>';
+  const recent5 = entries.slice(0, 5);
+  const allNotes = entries.map(e => `[${e.date} - ${e.course}] ${e.notes}${e.q1?' Best: '+e.q1:''}${e.q2?' Miss: '+e.q2:''}${e.q3?' Carry: '+e.q3:''}`).join('\n\n');
+  const recentNotes = recent5.map(e => `[${e.date} - ${e.course}] ${e.notes}${e.q1?' Best: '+e.q1:''}${e.q2?' Miss: '+e.q2:''}${e.q3?' Carry: '+e.q3:''}`).join('\n\n');
+  const prompt = `You are a golf coach reviewing a player's post-round journal. Extract actionable, specific insights.
+
+ALL ENTRIES (${entries.length} rounds):
+${allNotes}
+
+LAST 5 ENTRIES:
+${recentNotes}
+
+Return ONLY valid JSON — no markdown, no preamble:
+{"allTimePoints":["point1","point2","point3"],"recentPoints":["point1","point2","point3"],"watchOut":["thing1","thing2"]}
+
+Rules:
+- Be specific — reference actual patterns, not generic golf advice
+- Under 20 words per point
+- allTimePoints: 3-5 consistent themes across ALL rounds
+- recentPoints: 2-3 things working RIGHT NOW in the last 5 rounds
+- watchOut: 1-2 recurring mistakes to stay conscious of`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 800,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message);
+    const text = data.content.map(b => b.text || '').join('').replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(text);
+    briefCache = parsed;
+    renderBriefContent(parsed);
+  } catch(e) {
+    document.getElementById('brief-content').innerHTML = `<div class="empty">Could not generate brief. Check your API key in Setup.<br><small style="color:#aaa;">${e.message}</small></div>`;
+  }
+}
+
+function renderBriefContent(d) {
+  document.getElementById('brief-content').innerHTML = `
+    <div class="brief-section">
+      <div class="brief-label">Your game — all time (${entries.length} rounds)</div>
+      ${d.allTimePoints.map(p => `<div class="brief-point"><div class="brief-dot"></div><div>${p}</div></div>`).join('')}
+    </div>
+    <div class="brief-section">
+      <div class="brief-label">What's clicking right now — last 5 rounds</div>
+      ${d.recentPoints.map(p => `<div class="brief-point"><div class="brief-dot green"></div><div>${p}</div></div>`).join('')}
+    </div>
+    <div class="brief-section">
+      <div class="brief-label">Watch out for</div>
+      ${d.watchOut.map(p => `<div class="brief-point"><div class="brief-dot red"></div><div>${p}</div></div>`).join('')}
+    </div>
+  `;
+}
+
+init();
+</script>
+</body>
+</html>
