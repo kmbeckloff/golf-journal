@@ -157,6 +157,16 @@ textarea { min-height: 85px; resize: vertical; line-height: 1.55; }
 .bdot.green { background: #2D6A2D; }
 .bdot.red { background: var(--red-mid); }
 
+/* ── Brief tabs ── */
+.brief-tab {
+  padding: 8px 18px; background: none; border: none;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+  color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent;
+  margin-bottom: -2px; transition: all 0.15s;
+}
+.brief-tab.active { color: var(--g-dark); border-bottom-color: var(--g-dark); }
+.brief-tab:hover:not(.active) { color: var(--text); }
+
 /* ── Setup ── */
 .setup-steps { }
 .step { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border-light); }
@@ -233,6 +243,7 @@ textarea { min-height: 85px; resize: vertical; line-height: 1.55; }
     <button onclick="showPage('upload',this)">Upload Scorecard</button>
     <button onclick="showPage('log',this)">Log Round</button>
     <button onclick="showPage('history',this)">History</button>
+    <button onclick="showPage('practice',this)">Practice Log</button>
     <button onclick="showPage('brief',this)">Pre-Round Brief</button>
   </nav>
 </header>
@@ -457,13 +468,13 @@ textarea { min-height: 85px; resize: vertical; line-height: 1.55; }
         <div><label>OB Approach</label><input type="number" id="p-ob-a" /></div>
         <div><label>Other Penalties</label><input type="number" id="p-pen" /></div>
       </div>
-      <div class="form-section">Round Notes (Journal)</div>
-      <textarea id="p-notes" placeholder="What happened out there? Swing thoughts, what worked, what didn't..."></textarea>
-      <div class="grid3">
-        <div><label>Best Part</label><input type="text" id="p-best" /></div>
-        <div><label>Biggest Miss</label><input type="text" id="p-miss" /></div>
-        <div><label>Carry Forward</label><input type="text" id="p-carry" /></div>
-      </div>
+      <div class="form-section">Round Notes</div>
+      <label>Notes — stream of consciousness, swing thoughts, anything</label>
+      <textarea id="p-notes" placeholder="Just write. What happened, what you felt, what you noticed..."></textarea>
+      <label>Something I'm Proud Of</label>
+      <textarea id="p-proud" style="min-height:60px;" placeholder="What went well? What are you taking confidence from?"></textarea>
+      <label>Where Did My Game Fall Short?</label>
+      <textarea id="p-short" style="min-height:60px;" placeholder="What cost you strokes? What needs focus next time?"></textarea>
       <button class="btn btn-primary" onclick="saveRound('parsed')">Save Round to Sheet</button>
       <div id="save-status" style="font-size:12px;color:var(--text-muted);margin-top:8px;text-align:center;"></div>
     </div>
@@ -536,12 +547,12 @@ textarea { min-height: 85px; resize: vertical; line-height: 1.55; }
       <div><label>Other Penalties</label><input type="number" id="m-pen" /></div>
     </div>
     <div class="form-section">Round Notes</div>
-    <textarea id="m-notes" placeholder="What happened out there? Swing thoughts, what worked, what didn't..."></textarea>
-    <div class="grid3">
-      <div><label>Best Part</label><input type="text" id="m-best" /></div>
-      <div><label>Biggest Miss</label><input type="text" id="m-miss" /></div>
-      <div><label>Carry Forward</label><input type="text" id="m-carry" /></div>
-    </div>
+    <label>Notes — stream of consciousness, swing thoughts, anything</label>
+    <textarea id="m-notes" placeholder="Just write. What happened, what you felt, what you noticed..."></textarea>
+    <label>Something I'm Proud Of</label>
+    <textarea id="m-proud" style="min-height:60px;" placeholder="What went well? What are you taking confidence from?"></textarea>
+    <label>Where Did My Game Fall Short?</label>
+    <textarea id="m-short" style="min-height:60px;" placeholder="What cost you strokes? What needs focus next time?"></textarea>
     <button class="btn btn-primary" onclick="saveRound('manual')">Save Round</button>
   </div>
 </div>
@@ -559,11 +570,21 @@ textarea { min-height: 85px; resize: vertical; line-height: 1.55; }
 <!-- ══════════════════════════════════════════════════════════ BRIEF -->
 <div id="page-brief" class="page">
   <div class="btn-group">
-    <button class="btn btn-secondary btn-sm" onclick="generateBrief(true)">Regenerate Brief</button>
+    <button class="btn btn-secondary btn-sm" onclick="generateBothBriefs(true)">Regenerate Both Briefs</button>
     <button class="btn btn-secondary btn-sm" onclick="syncThenBrief()">Sync + Regenerate</button>
   </div>
-  <div id="brief-content">
-    <div class="empty"><div class="empty-icon">🏌️</div>Log some rounds to generate your pre-round brief.</div>
+
+  <!-- Brief tabs -->
+  <div style="display:flex;gap:0;border-bottom:2px solid var(--border-light);margin-bottom:1.25rem;">
+    <button id="brief-tab-all" class="brief-tab active" onclick="switchBriefTab('all')">All Notes</button>
+    <button id="brief-tab-recent" class="brief-tab" onclick="switchBriefTab('recent')">Last 5 Entries</button>
+  </div>
+
+  <div id="brief-all">
+    <div class="empty"><div class="empty-icon">🏌️</div>Log some rounds or practice sessions to generate your brief.</div>
+  </div>
+  <div id="brief-recent" style="display:none;">
+    <div class="empty"><div class="empty-icon">🏌️</div>Log some rounds or practice sessions to generate your brief.</div>
   </div>
 </div>
 
@@ -592,6 +613,7 @@ function init() {
   if (key) { document.getElementById('api-key-input').value = key; document.getElementById('api-key-status').textContent = 'Key saved ✓'; }
   rounds = S.getJ('gj2-rounds') || [];
   journal = S.getJ('gj2-journal') || [];
+  loadPractice();
   // default date fields
   const today = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
   ['m-date','p-date'].forEach(id => { const el=document.getElementById(id); if(el) el.value=today; });
@@ -605,7 +627,8 @@ function showPage(p, btn) {
   btn.classList.add('active');
   if (p==='dashboard') renderDashboard();
   if (p==='history') renderHistory();
-  if (p==='brief') renderBrief();
+  if (p==='practice') { loadPractice(); renderPracticeList(); const today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); const d=document.getElementById('pr-date'); if(d&&!d.value) d.value=today; }
+  if (p==='brief') { loadPractice(); renderBrief(); }
 }
 
 // ══ Toast ══════════════════════════════════════════════════════════
@@ -713,8 +736,8 @@ async function syncAll() {
 
 async function syncThenBrief() {
   await fetchAllSheets();
-  briefCache = null;
-  generateBrief(true);
+  briefCacheAll = null; briefCacheRecent = null;
+  generateBothBriefs(true);
 }
 
 // ══ Dashboard ══════════════════════════════════════════════════════
@@ -1014,11 +1037,10 @@ function renderHistory() {
         ${(parseFloat(r['ob off tee'])+parseFloat(r['ob approach'])+parseFloat(r['penalty']))>0?`<div class="entry-stat" style="color:var(--red);">Penalties: <strong>${(parseFloat(r['ob off tee']||0)+parseFloat(r['ob approach']||0)+parseFloat(r['penalty']||0))}</strong></div>`:''}
       </div>
       ${jEntry&&jEntry['notes']?`<div class="entry-notes">${jEntry['notes']}</div>`:''}
-      ${jEntry&&(jEntry['best part']||jEntry['biggest miss']||jEntry['carry forward'])?`
+      ${jEntry&&(jEntry['proud']||jEntry['short'])?`
       <div class="entry-qa">
-        ${jEntry['best part']?`<div class="qa-row">Best: <span>${jEntry['best part']}</span></div>`:''}
-        ${jEntry['biggest miss']?`<div class="qa-row">Miss: <span>${jEntry['biggest miss']}</span></div>`:''}
-        ${jEntry['carry forward']?`<div class="qa-row">Carry: <span>${jEntry['carry forward']}</span></div>`:''}
+        ${jEntry['proud']?`<div class="qa-row">Proud of: <span>${jEntry['proud']}</span></div>`:''}
+        ${jEntry['short']?`<div class="qa-row">Fell short: <span>${jEntry['short']}</span></div>`:''}
       </div>`:''}
     </div>`;
   }).join('');
@@ -1219,14 +1241,13 @@ function saveRound(mode) {
     'date': entry['date'],
     'course': entry['course'],
     'notes': g(prefix+'notes'),
-    'best part': g(prefix+'best'),
-    'biggest miss': g(prefix+'miss'),
-    'carry forward': g(prefix+'carry'),
+    'proud': g(prefix+'proud'),
+    'short': g(prefix+'short'),
     'round id': Date.now().toString(),
     'source': 'local'
   };
   rounds.unshift(entry);
-  if (jEntry['notes']||jEntry['best part']||jEntry['biggest miss']||jEntry['carry forward']) {
+  if (jEntry['notes']||jEntry['proud']||jEntry['short']) {
     journal.unshift(jEntry);
   }
   S.set('gj2-rounds', rounds);
@@ -1265,10 +1286,16 @@ async function generateBrief(force) {
   // Include stats context too
   const recent5 = journal.slice(0,5);
   const statsCtx = rounds.slice(0,5).map(r=>`[${r['date']} - ${r['course']}] Score:${r['score']} FIR:${r['fir%']}% GIR:${r['gir%']}% Putts:${r['putts']} FIR-miss-quality:${r['fir miss quality']} GIR-miss-quality:${r['gir miss quality']}`).join('\n');
-  const allNotes = journal.map(j=>`[${j['date']} - ${j['course']}] ${j['notes']||''}${j['best part']?' Best:'+j['best part']:''}${j['biggest miss']?' Miss:'+j['biggest miss']:''}${j['carry forward']?' Carry:'+j['carry forward']:''}`).join('\n\n');
-  const recentNotes = recent5.map(j=>`[${j['date']} - ${j['course']}] ${j['notes']||''}${j['best part']?' Best:'+j['best part']:''}${j['biggest miss']?' Miss:'+j['biggest miss']:''}${j['carry forward']?' Carry:'+j['carry forward']:''}`).join('\n\n');
+  const fmt = (e, label) => `[${label} ${e.date||''} ${e.course||e.type||''}] ${e.notes||''}${e.proud?' Proud:'+e.proud:''}${e.short?' FellShort:'+e.short:''}`;
+  const allRoundNotes = journal.map(j=>fmt(j,'ROUND'));
+  const allPracticeNotes = practice.map(p=>fmt(p,'PRACTICE'));
+  // Merge and sort by date descending (most recent first)
+  const allCombined = [...journal.map(j=>({...j,_label:'ROUND',_date:j['date']})), ...practice.map(p=>({...p,_label:'PRACTICE',_date:p.date}))];
+  const allNotes = allCombined.map(e=>fmt(e,e._label)).join('\n\n');
+  const recent5Combined = allCombined.slice(0,5);
+  const recentNotes = recent5Combined.map(e=>fmt(e,e._label)).join('\n\n');
 
-  const prompt = `You are a golf coach reviewing a player's post-round journal and recent stats. Give practical, specific pre-round guidance.
+  const prompt = `You are a golf coach reviewing a player's post-round journal, practice session notes, and recent stats. Swing thoughts apply equally to practice and play — treat them as one unified pool. Give practical, specific pre-round guidance.
 
 RECENT STATS (last 5 rounds):
 ${statsCtx}
@@ -1276,8 +1303,11 @@ ${statsCtx}
 ALL JOURNAL ENTRIES (${journal.length} rounds):
 ${allNotes}
 
-LAST 5 JOURNAL ENTRIES:
+LAST 5 ROUND ENTRIES:
 ${recentNotes}
+
+RECENT PRACTICE SESSIONS (last 5):
+${recentPractice}
 
 Return ONLY valid JSON, no markdown:
 {
@@ -1321,6 +1351,73 @@ function renderBriefContent(d) {
       ${d.watchOut.map(p=>`<div class="brief-point"><div class="bdot red"></div><div>${p}</div></div>`).join('')}
     </div>
   `;
+}
+
+
+// ══ Practice Log ═══════════════════════════════════════════════════
+let practice = [];
+
+function loadPractice() {
+  practice = JSON.parse(localStorage.getItem('gj2-practice') || '[]');
+}
+
+function savePractice() {
+  const notes = document.getElementById('pr-notes').value.trim();
+  if (!notes) { toast('Add some notes first'); return; }
+  const entry = {
+    id: Date.now(),
+    date: document.getElementById('pr-date').value || new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+    type: document.getElementById('pr-type').value || 'Range',
+    notes,
+    proud: document.getElementById('pr-proud').value.trim(),
+    short: document.getElementById('pr-short').value.trim(),
+    source: 'practice'
+  };
+  loadPractice();
+  practice.unshift(entry);
+  localStorage.setItem('gj2-practice', JSON.stringify(practice));
+  briefCache = null;
+  document.getElementById('pr-notes').value = '';
+  document.getElementById('pr-proud').value = '';
+  document.getElementById('pr-short').value = '';
+  document.getElementById('pr-type').value = '';
+  renderPracticeList();
+  toast('Practice session saved');
+}
+
+function renderPracticeList() {
+  loadPractice();
+  const list = document.getElementById('practice-list');
+  if (!list) return;
+  if (!practice.length) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">🏌️</div>No practice sessions logged yet.</div>';
+    return;
+  }
+  list.innerHTML = practice.map(p => `
+    <div class="entry-card">
+      <div class="entry-top">
+        <div>
+          <div class="entry-course">${p.type}</div>
+          <div class="entry-meta">${p.date}</div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="deletePractice(${p.id})">✕</button>
+      </div>
+      <div class="entry-notes">${p.notes}</div>
+      ${(p.proud||p.short) ? `<div class="entry-qa" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border-light);">
+        ${p.proud ? `<div class="qa-row">Proud of: <span>${p.proud}</span></div>` : ''}
+        ${p.short ? `<div class="qa-row">Fell short: <span>${p.short}</span></div>` : ''}
+      </div>` : ''}
+    </div>
+  `).join('');
+}
+
+function deletePractice(id) {
+  loadPractice();
+  practice = practice.filter(p => p.id !== id);
+  localStorage.setItem('gj2-practice', JSON.stringify(practice));
+  briefCache = null;
+  renderPracticeList();
+  toast('Session deleted');
 }
 
 // ══ Course selector ════════════════════════════════════════════════
