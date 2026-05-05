@@ -594,7 +594,6 @@ textarea { min-height: 85px; resize: vertical; line-height: 1.55; }
 // ══ State ══════════════════════════════════════════════════════════
 let rounds = [];
 let journal = [];
-let briefCache = null;
 let dashRange = 0;
 let chartInstances = {};
 
@@ -1261,95 +1260,144 @@ function saveRound(mode) {
 }
 
 // ══ Pre-round Brief ════════════════════════════════════════════════
-function renderBrief() {
-  if (briefCache) { renderBriefContent(briefCache); return; }
-  if (!journal.length) {
-    document.getElementById('brief-content').innerHTML = '<div class="empty"><div class="empty-icon">🏌️</div>Log some rounds with notes to generate your brief.</div>';
-    return;
-  }
-  generateBrief(false);
+let briefCacheAll = null;
+let briefCacheRecent = null;
+
+function switchBriefTab(tab) {
+  document.querySelectorAll('.brief-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('brief-tab-' + tab).classList.add('active');
+  document.getElementById('brief-all').style.display = tab === 'all' ? 'block' : 'none';
+  document.getElementById('brief-recent').style.display = tab === 'recent' ? 'block' : 'none';
 }
 
-async function generateBrief(force) {
-  if (!force && briefCache) { renderBriefContent(briefCache); return; }
+function renderBrief() {
+  loadPractice();
+  const hasData = journal.length || practice.length;
+  if (!hasData) {
+    document.getElementById('brief-all').innerHTML = '<div class="empty"><div class="empty-icon">🏌️</div>Log some rounds or practice sessions first.</div>';
+    document.getElementById('brief-recent').innerHTML = '<div class="empty"><div class="empty-icon">🏌️</div>Log some rounds or practice sessions first.</div>';
+    return;
+  }
+  generateBothBriefs(false);
+}
+
+function generateBothBriefs(force) {
+  generateOneBrief('all', force);
+  generateOneBrief('recent', force);
+}
+
+function buildCombined() {
+  return [
+    ...journal.map(j => ({...j, _label: 'ROUND', _type: 'round'})),
+    ...practice.map(p => ({...p, _label: 'PRACTICE', _type: 'practice'}))
+  ];
+}
+
+function fmtEntry(e) {
+  return `[${e._label} | ${e.date || ''} | ${e.course || e.type || ''}]
+Notes: ${e.notes || 'none'}
+Proud of: ${e.proud || 'none'}
+Fell short: ${e.short || 'none'}`;
+}
+
+async function generateOneBrief(mode, force) {
+  const cached = mode === 'all' ? briefCacheAll : briefCacheRecent;
+  const container = document.getElementById('brief-' + mode);
+  if (!force && cached) { renderBriefContent(cached, mode); return; }
+
   const apiKey = S.get('gj2-api-key');
   if (!apiKey) {
-    document.getElementById('brief-content').innerHTML = '<div class="empty"><div class="empty-icon">🔑</div>Add your Anthropic API key in Setup to use this feature.</div>';
+    container.innerHTML = '<div class="empty"><div class="empty-icon">🔑</div>Add your Anthropic API key in Setup.</div>';
     return;
   }
-  if (!journal.length) {
-    document.getElementById('brief-content').innerHTML = '<div class="empty"><div class="empty-icon">🏌️</div>Log some rounds with notes first.</div>';
+
+  container.innerHTML = '<div class="loading"><span class="spinner"></span>Analyzing your notes...</div>';
+
+  const allCombined = buildCombined();
+  if (!allCombined.length) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">🏌️</div>No entries found.</div>';
     return;
   }
-  document.getElementById('brief-content').innerHTML = '<div class="loading"><span class="spinner"></span>Analyzing your rounds...</div>';
 
-  // Include stats context too
-  const recent5 = journal.slice(0,5);
-  const statsCtx = rounds.slice(0,5).map(r=>`[${r['date']} - ${r['course']}] Score:${r['score']} FIR:${r['fir%']}% GIR:${r['gir%']}% Putts:${r['putts']} FIR-miss-quality:${r['fir miss quality']} GIR-miss-quality:${r['gir miss quality']}`).join('\n');
-  const fmt = (e, label) => `[${label} ${e.date||''} ${e.course||e.type||''}] ${e.notes||''}${e.proud?' Proud:'+e.proud:''}${e.short?' FellShort:'+e.short:''}`;
-  const allRoundNotes = journal.map(j=>fmt(j,'ROUND'));
-  const allPracticeNotes = practice.map(p=>fmt(p,'PRACTICE'));
-  // Merge and sort by date descending (most recent first)
-  const allCombined = [...journal.map(j=>({...j,_label:'ROUND',_date:j['date']})), ...practice.map(p=>({...p,_label:'PRACTICE',_date:p.date}))];
-  const allNotes = allCombined.map(e=>fmt(e,e._label)).join('\n\n');
-  const recent5Combined = allCombined.slice(0,5);
-  const recentNotes = recent5Combined.map(e=>fmt(e,e._label)).join('\n\n');
+  const entries = mode === 'all' ? allCombined : allCombined.slice(0, 5);
+  const notesBlock = entries.map(fmtEntry).join('\n\n');
+  const statsCtx = rounds.slice(0, 5).map(r =>
+    `${r['date']} at ${r['course']}: Score ${r['score']}, FIR ${r['fir%']}%, GIR ${r['gir%']}%, Putts ${r['putts']}`
+  ).join('\n') || 'No stats logged yet.';
 
-  const prompt = `You are a golf coach reviewing a player's post-round journal, practice session notes, and recent stats. Swing thoughts apply equally to practice and play — treat them as one unified pool. Give practical, specific pre-round guidance.
+  const scopeLabel = mode === 'all'
+    ? `all ${entries.length} entries`
+    : `last ${entries.length} entries`;
 
-RECENT STATS (last 5 rounds):
+  const prompt = `You are a golf coach reading a player's notes from rounds and practice sessions.
+Condense similar/repeated themes into clear, actionable pre-round insights.
+Swing thoughts apply equally to practice and play — treat them as one pool.
+Weight more recent entries slightly higher.
+
+RECENT STATS:
 ${statsCtx}
 
-ALL JOURNAL ENTRIES (${journal.length} rounds):
-${allNotes}
+ENTRIES (${scopeLabel}):
+${notesBlock}
 
-LAST 5 ROUND ENTRIES:
-${recentNotes}
-
-RECENT PRACTICE SESSIONS (last 5):
-${recentPractice}
-
-Return ONLY valid JSON, no markdown:
+Return ONLY valid JSON, no markdown, no explanation:
 {
-  "allTimePoints": ["3-5 consistent patterns from all rounds — specific, not generic"],
-  "recentPoints": ["2-3 things working RIGHT NOW in last 5 rounds"],
-  "watchOut": ["1-2 specific recurring mistakes to stay conscious of"],
-  "statInsight": "One sentence insight connecting their stats to their notes — specific numbers"
+  "confident": ["2-3 specific confidence builders drawn from proud moments and what has been working"],
+  "focus": ["2-3 recurring patterns that have cost strokes — specific, not generic"],
+  "swingThoughts": ["1-2 key swing thoughts or feels that keep appearing across entries"],
+  "statInsight": "One sentence connecting a stat trend to a note pattern using real numbers. Write none if no stats available."
 }
 
-Rules: Reference actual patterns. Under 20 words per point. Use stats data where relevant.`;
+Rules: Under 20 words per point. Be specific — use actual details from the notes, not generic golf advice.`;
 
   try {
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
     });
     const data = await resp.json();
     if (data.error) throw new Error(data.error.message);
-    const text = data.content.map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
-    briefCache = JSON.parse(text);
-    renderBriefContent(briefCache);
+    const text = data.content.map(b => b.text || '').join('').replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(text);
+    if (mode === 'all') briefCacheAll = parsed;
+    else briefCacheRecent = parsed;
+    renderBriefContent(parsed, mode);
   } catch(e) {
-    document.getElementById('brief-content').innerHTML = `<div class="empty">Could not generate brief. Check your API key.<br><small style="color:#aaa;">${e.message}</small></div>`;
+    container.innerHTML = `<div class="empty">Could not generate brief — ${e.message}<br><small style="color:#aaa;">Check your API key in Setup.</small></div>`;
   }
 }
 
-function renderBriefContent(d) {
-  document.getElementById('brief-content').innerHTML = `
-    ${d.statInsight?`<div class="card" style="background:var(--g-dark);border:none;"><div style="font-size:13px;color:var(--tan-light);line-height:1.6;">📊 ${d.statInsight}</div></div>`:''}
+function renderBriefContent(d, mode) {
+  const container = document.getElementById('brief-' + mode);
+  const total = journal.length + practice.length;
+  const label = mode === 'all'
+    ? `${journal.length} rounds · ${practice.length} practice sessions`
+    : `last 5 entries`;
+  container.innerHTML = `
+    ${d.statInsight && d.statInsight !== 'none' ? `<div class="card" style="background:var(--g-dark);border:none;margin-bottom:1rem;"><div style="font-size:13px;color:var(--tan-light);line-height:1.6;">📊 ${d.statInsight}</div></div>` : ''}
     <div class="brief-section">
-      <div class="brief-label">Your game — all time (${journal.length} rounds)</div>
-      ${d.allTimePoints.map(p=>`<div class="brief-point"><div class="bdot"></div><div>${p}</div></div>`).join('')}
+      <div class="brief-label">Feel good about this 💪</div>
+      ${(d.confident||[]).map(p => `<div class="brief-point"><div class="bdot green"></div><div>${p}</div></div>`).join('')}
     </div>
     <div class="brief-section">
-      <div class="brief-label">What's clicking right now — last 5 rounds</div>
-      ${d.recentPoints.map(p=>`<div class="brief-point"><div class="bdot green"></div><div>${p}</div></div>`).join('')}
+      <div class="brief-label">Stay focused on this 🎯</div>
+      ${(d.focus||[]).map(p => `<div class="brief-point"><div class="bdot red"></div><div>${p}</div></div>`).join('')}
     </div>
     <div class="brief-section">
-      <div class="brief-label">Watch out for</div>
-      ${d.watchOut.map(p=>`<div class="brief-point"><div class="bdot red"></div><div>${p}</div></div>`).join('')}
+      <div class="brief-label">Key swing thoughts 💭</div>
+      ${(d.swingThoughts||[]).map(p => `<div class="brief-point"><div class="bdot"></div><div>${p}</div></div>`).join('')}
     </div>
+    <div style="font-size:11px;color:var(--text-muted);text-align:right;margin-top:0.5rem;">Based on ${label}</div>
   `;
 }
 
