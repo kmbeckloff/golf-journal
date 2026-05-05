@@ -3,677 +3,1247 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Golf Journal</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<title>Golf Journal & Stats</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root {
-  --green: #2D5016;
-  --green-mid: #4A7C2F;
-  --green-light: #8BB87A;
-  --cream: #F5F0E8;
-  --cream-dark: #EDE7D6;
-  --tan: #C4A882;
-  --tan-dark: #9E825A;
-  --text: #1A1A1A;
-  --text-mid: #4A4A4A;
-  --text-muted: #888;
+  --g-dark: #1A3A1A; --g-mid: #2D5A2D; --g-light: #4A7C2F;
+  --g-pale: #E8F0E8; --g-pale2: #D0E4D0;
+  --tan: #C4A882; --tan-light: #F5F0E8; --tan-dark: #9E825A;
+  --cream: #FAFAF6; --cream-dark: #F0EBE0;
+  --red: #8B1A1A; --red-light: #FFF0EE; --red-mid: #C0392B;
+  --text: #1A1A1A; --text-mid: #4A4A4A; --text-muted: #888;
+  --border: #DDD; --border-light: #EEEEEE;
   --white: #FFFFFF;
-  --danger: #C0392B;
-  --teal: #1D6A5A;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --radius: 10px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 16px; }
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: var(--cream);
-  color: var(--text);
-  min-height: 100vh;
-}
+html { font-size: 15px; }
+body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+a { color: var(--g-mid); }
 
-/* Header */
-.header {
-  background: var(--green);
-  padding: 1.25rem 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+/* ── Header ── */
+.app-header {
+  background: var(--g-dark);
+  padding: 0.9rem 1.25rem 0;
+  position: sticky; top: 0; z-index: 200;
 }
-.header-title {
-  font-family: 'DM Serif Display', serif;
-  font-size: 1.4rem;
-  color: var(--cream);
-  letter-spacing: 0.01em;
-}
-.header-sub {
-  font-size: 11px;
-  color: var(--green-light);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-top: 2px;
-}
-
-/* Nav */
-.nav {
-  display: flex;
-  background: var(--green);
-  border-top: 1px solid rgba(255,255,255,0.08);
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
+.header-top { display: flex; align-items: baseline; gap: 10px; margin-bottom: 0.6rem; }
+.app-title { font-family: 'DM Serif Display', serif; font-size: 1.35rem; color: var(--tan-light); }
+.app-sub { font-size: 11px; color: #6A9A6A; letter-spacing: 0.06em; }
+.nav { display: flex; gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .nav button {
-  flex: 1;
-  min-width: 80px;
-  padding: 12px 8px;
-  background: none;
-  border: none;
-  color: var(--green-light);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: all 0.15s;
+  flex-shrink: 0; padding: 8px 14px;
+  background: none; border: none; border-bottom: 2px solid transparent;
+  color: #6A9A6A; font-family: 'DM Sans', sans-serif; font-size: 12px;
+  font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
 }
-.nav button.active {
-  color: var(--cream);
-  border-bottom-color: var(--tan);
-}
-.nav button:hover:not(.active) { color: var(--cream); }
+.nav button.active { color: var(--tan-light); border-bottom-color: var(--tan); }
+.nav button:hover:not(.active) { color: #B0CDB0; }
 
-/* Pages */
-.page { display: none; padding: 1.25rem; max-width: 680px; margin: 0 auto; }
+/* ── Pages ── */
+.page { display: none; padding: 1.1rem; max-width: 780px; margin: 0 auto; padding-bottom: 2rem; }
 .page.active { display: block; }
 
-/* Cards */
-.card {
-  background: var(--white);
-  border-radius: 12px;
-  padding: 1.25rem;
-  margin-bottom: 1rem;
-  border: 1px solid rgba(0,0,0,0.07);
-}
-.card-title {
-  font-family: 'DM Serif Display', serif;
-  font-size: 1.05rem;
-  color: var(--green);
-  margin-bottom: 0.85rem;
-}
+/* ── Cards ── */
+.card { background: var(--white); border-radius: var(--radius); padding: 1.1rem; margin-bottom: 1rem; border: 1px solid var(--border-light); box-shadow: var(--shadow); }
+.card-title { font-family: 'DM Serif Display', serif; font-size: 1rem; color: var(--g-dark); margin-bottom: 0.85rem; }
+.card-sub { font-size: 12px; color: var(--text-muted); margin-top: -0.6rem; margin-bottom: 0.85rem; }
 
-/* Form elements */
-label {
-  display: block;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 5px;
-  margin-top: 14px;
-}
+/* ── Form elements ── */
+label { display: block; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; margin-top: 12px; }
 label:first-of-type { margin-top: 0; }
-input[type=text], input[type=number], textarea, select {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #DDD;
-  border-radius: 8px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 14px;
-  color: var(--text);
-  background: var(--cream);
-  transition: border-color 0.15s;
+input[type=text], input[type=number], input[type=date], textarea, select {
+  width: 100%; padding: 9px 11px; border: 1px solid var(--border);
+  border-radius: 7px; font-family: 'DM Sans', sans-serif; font-size: 14px;
+  color: var(--text); background: var(--cream); transition: border-color 0.15s;
   -webkit-appearance: none;
 }
-input:focus, textarea:focus {
-  outline: none;
-  border-color: var(--green-mid);
-  background: var(--white);
-}
-textarea { min-height: 100px; resize: vertical; line-height: 1.6; }
-.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-@media (max-width: 480px) { .row2 { grid-template-columns: 1fr; } }
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--g-light); background: var(--white); }
+textarea { min-height: 85px; resize: vertical; line-height: 1.55; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.grid4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
+@media(max-width:520px) { .grid2,.grid3,.grid4 { grid-template-columns: 1fr 1fr; } }
+@media(max-width:380px) { .grid2,.grid3,.grid4 { grid-template-columns: 1fr; } }
 
-/* Buttons */
-.btn-primary {
-  width: 100%;
-  padding: 13px;
-  background: var(--green);
-  color: var(--cream);
-  border: none;
-  border-radius: 8px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  margin-top: 1rem;
-  transition: background 0.15s;
-  letter-spacing: 0.02em;
+/* Section dividers inside forms */
+.form-section {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase;
+  color: var(--g-mid); padding: 0.6rem 0 0.4rem;
+  border-bottom: 1px solid var(--g-pale2); margin: 1rem 0 0.6rem;
 }
-.btn-primary:hover { background: var(--green-mid); }
-.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
-.btn-secondary {
-  padding: 8px 16px;
-  background: none;
-  border: 1px solid #CCC;
-  border-radius: 8px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
-  color: var(--text-mid);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.btn-secondary:hover { border-color: var(--green-mid); color: var(--green); }
+.form-section:first-child { margin-top: 0; }
 
-/* Setup page */
-.setup-step {
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--cream-dark);
-}
-.setup-step:last-child { border-bottom: none; }
-.step-num {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--green);
-  color: var(--cream);
-  font-size: 13px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-.step-body { flex: 1; }
-.step-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
-.step-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 8px; }
-.connect-row { display: flex; gap: 8px; }
-.connect-row input { flex: 1; }
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  margin-left: 8px;
-}
-.badge-ok { background: #E8F5E2; color: #2D6A0A; }
-.badge-err { background: #FDECEA; color: #B71C1C; }
-.api-info { font-size: 12px; color: var(--text-muted); line-height: 1.5; background: var(--cream); border-radius: 8px; padding: 10px 12px; margin-top: 8px; }
-.api-info code { font-family: monospace; font-size: 11px; background: rgba(0,0,0,0.06); padding: 1px 5px; border-radius: 3px; }
+/* ── Buttons ── */
+.btn { padding: 9px 18px; border-radius: 7px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; border: none; }
+.btn-primary { background: var(--g-dark); color: var(--tan-light); width: 100%; padding: 12px; font-size: 14px; margin-top: 0.85rem; }
+.btn-primary:hover { background: var(--g-mid); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-secondary { background: none; border: 1px solid var(--border); color: var(--text-mid); }
+.btn-secondary:hover { border-color: var(--g-mid); color: var(--g-mid); }
+.btn-danger { background: none; border: 1px solid #ddd; color: var(--red); font-size: 12px; padding: 5px 10px; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
 
-/* History */
-.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.25rem; }
-.stat-box { background: var(--green); border-radius: 10px; padding: 14px; text-align: center; }
-.stat-num { font-family: 'DM Serif Display', serif; font-size: 1.6rem; color: var(--cream); }
-.stat-lbl { font-size: 10px; color: var(--green-light); text-transform: uppercase; letter-spacing: 0.07em; margin-top: 3px; }
-.entry-card {
-  background: var(--white);
-  border-radius: 12px;
-  padding: 1.1rem 1.25rem;
-  margin-bottom: 10px;
-  border: 1px solid rgba(0,0,0,0.07);
+/* ── Stats cards ── */
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.1rem; }
+@media(max-width:520px) { .stat-grid { grid-template-columns: repeat(2,1fr); } }
+.stat-box { background: var(--g-dark); border-radius: var(--radius); padding: 12px 10px; text-align: center; }
+.stat-num { font-family: 'DM Serif Display', serif; font-size: 1.7rem; color: var(--tan-light); line-height: 1; }
+.stat-lbl { font-size: 10px; color: #6A9A6A; text-transform: uppercase; letter-spacing: 0.07em; margin-top: 4px; }
+.stat-sub { font-size: 10px; color: var(--tan); margin-top: 2px; }
+
+/* ── Chart containers ── */
+.chart-wrap { position: relative; height: 200px; margin-top: 0.5rem; }
+.chart-wrap-sm { position: relative; height: 160px; }
+.chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media(max-width:520px) { .chart-row { grid-template-columns: 1fr; } }
+
+/* ── Upload area ── */
+.upload-zone {
+  border: 2px dashed var(--g-light); border-radius: var(--radius);
+  padding: 2rem 1rem; text-align: center; cursor: pointer;
+  background: var(--g-pale); transition: all 0.2s; margin-bottom: 1rem;
 }
-.entry-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-.entry-course { font-size: 15px; font-weight: 500; color: var(--text); }
+.upload-zone:hover { background: var(--g-pale2); border-color: var(--g-dark); }
+.upload-zone.dragover { background: var(--g-pale2); border-color: var(--g-dark); }
+.upload-icon { font-size: 2.2rem; margin-bottom: 0.5rem; }
+.upload-text { font-size: 14px; color: var(--g-mid); font-weight: 500; }
+.upload-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+#upload-preview { max-width: 100%; border-radius: 8px; margin-bottom: 1rem; display: none; max-height: 300px; object-fit: contain; }
+
+/* ── Parsed results ── */
+.parsed-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1rem; }
+@media(max-width:420px) { .parsed-grid { grid-template-columns: 1fr; } }
+.parsed-field { background: var(--g-pale); border-radius: 7px; padding: 8px 10px; }
+.parsed-label { font-size: 10px; font-weight: 600; color: var(--g-mid); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+.parsed-val { font-size: 13px; color: var(--text); font-weight: 500; }
+.parsed-val.editable { cursor: pointer; border-bottom: 1px dashed var(--border); }
+
+/* ── Entry cards ── */
+.entry-card { background: var(--white); border-radius: var(--radius); padding: 1rem 1.1rem; margin-bottom: 10px; border: 1px solid var(--border-light); box-shadow: var(--shadow); }
+.entry-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+.entry-course { font-size: 15px; font-weight: 600; color: var(--text); }
 .entry-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-.entry-score-pill {
-  background: var(--cream-dark);
-  color: var(--tan-dark);
-  font-size: 13px;
-  font-weight: 500;
-  padding: 3px 10px;
-  border-radius: 20px;
-  white-space: nowrap;
-}
-.entry-notes { font-size: 14px; color: var(--text-mid); line-height: 1.6; }
-.entry-qa { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--cream-dark); }
+.entry-pill { background: var(--cream-dark); color: var(--tan-dark); font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+.entry-stats { display: flex; gap: 14px; flex-wrap: wrap; margin: 8px 0; }
+.entry-stat { font-size: 12px; color: var(--text-muted); }
+.entry-stat strong { color: var(--text); }
+.entry-notes { font-size: 13px; color: var(--text-mid); line-height: 1.55; margin-top: 6px; }
+.entry-qa { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-light); }
 .qa-row { font-size: 12px; color: var(--text-muted); margin-bottom: 3px; }
 .qa-row span { color: var(--text-mid); }
-.del-btn { background: none; border: none; color: #CCC; cursor: pointer; font-size: 16px; padding: 2px 6px; border-radius: 4px; line-height: 1; }
-.del-btn:hover { color: var(--danger); }
-.toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
-.sync-status { font-size: 12px; color: var(--text-muted); }
 
-/* Brief */
-.brief-controls { display: flex; gap: 8px; margin-bottom: 1.25rem; flex-wrap: wrap; }
-.brief-section { margin-bottom: 1.5rem; }
-.brief-label {
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.brief-label::after { content: ''; flex: 1; height: 1px; background: var(--cream-dark); }
-.brief-point {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 11px 14px;
-  background: var(--white);
-  border-radius: 10px;
-  border: 1px solid rgba(0,0,0,0.07);
-  margin-bottom: 8px;
-  font-size: 14px;
-  color: var(--text-mid);
-  line-height: 1.6;
-}
-.brief-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--tan);
-  margin-top: 7px;
-  flex-shrink: 0;
-}
-.brief-dot.green { background: var(--teal); }
-.brief-dot.red { background: var(--danger); }
+/* ── Miss direction visual ── */
+.miss-compass { display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; width: 80px; height: 80px; gap: 2px; }
+.mc-cell { background: var(--g-pale); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: var(--text-muted); }
+.mc-center { background: var(--g-dark); color: var(--tan-light); font-size: 9px; }
+.mc-hit { background: var(--g-mid) !important; color: white !important; }
+.mc-miss-high { background: #E8F5E2; color: var(--g-dark); }
+.compass-wrap { display: flex; align-items: center; gap: 16px; }
+.compass-legend { font-size: 11px; color: var(--text-muted); }
+.compass-legend div { margin-bottom: 3px; }
 
-/* Loading / empty */
-.loading { text-align: center; padding: 2.5rem 1rem; color: var(--text-muted); font-size: 14px; }
-.spinner {
-  display: inline-block;
-  width: 20px; height: 20px;
-  border: 2px solid #DDD;
-  border-top-color: var(--green);
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-  vertical-align: middle;
-  margin-right: 8px;
-}
+/* ── Brief ── */
+.brief-section { margin-bottom: 1.4rem; }
+.brief-label { font-size: 10px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.brief-label::after { content: ''; flex: 1; height: 1px; background: var(--border-light); }
+.brief-point { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; background: var(--white); border-radius: 8px; border: 1px solid var(--border-light); margin-bottom: 7px; font-size: 13px; color: var(--text-mid); line-height: 1.55; }
+.bdot { width: 7px; height: 7px; border-radius: 50%; background: var(--tan); margin-top: 5px; flex-shrink: 0; }
+.bdot.green { background: #2D6A2D; }
+.bdot.red { background: var(--red-mid); }
+
+/* ── Setup ── */
+.setup-steps { }
+.step { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border-light); }
+.step:last-child { border-bottom: none; }
+.step-num { width: 26px; height: 26px; border-radius: 50%; background: var(--g-dark); color: var(--tan-light); font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+.step-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+.step-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 8px; }
+.connect-row { display: flex; gap: 8px; }
+.connect-row input { flex: 1; }
+.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.badge-ok { background: #E8F5E2; color: #1A5C1A; }
+.badge-err { background: #FDECEA; color: #8B1A1A; }
+.code-block { background: var(--g-dark); color: #C8E0C8; font-family: monospace; font-size: 11px; border-radius: 7px; padding: 10px 12px; margin: 8px 0; line-height: 1.6; overflow-x: auto; }
+
+/* ── Loading / empty ── */
+.loading { text-align: center; padding: 2.5rem; color: var(--text-muted); font-size: 13px; }
+.spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--g-mid); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 8px; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.empty { text-align: center; padding: 3rem 1rem; color: var(--text-muted); font-size: 14px; }
+.empty { text-align: center; padding: 2.5rem 1rem; color: var(--text-muted); font-size: 13px; }
 .empty-icon { font-size: 2.5rem; margin-bottom: 10px; }
 
-/* Toast */
-.toast {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--green);
-  color: var(--cream);
-  padding: 10px 22px;
-  border-radius: 24px;
-  font-size: 13px;
-  font-weight: 500;
-  opacity: 0;
-  transition: opacity 0.25s;
-  pointer-events: none;
-  z-index: 9999;
-  white-space: nowrap;
-}
+/* ── Toast ── */
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--g-dark); color: var(--tan-light); padding: 10px 22px; border-radius: 24px; font-size: 13px; font-weight: 500; opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 9999; white-space: nowrap; }
 .toast.show { opacity: 1; }
 
-/* Log page */
-.form-section-label {
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--green-mid);
-  margin: 1.25rem 0 0.75rem;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--cream-dark);
+/* ── Tab indicator ── */
+.tab-badge { display: inline-block; background: var(--tan); color: var(--g-dark); border-radius: 10px; font-size: 9px; font-weight: 700; padding: 1px 5px; margin-left: 4px; vertical-align: middle; }
+
+/* ── Trend indicator ── */
+.trend-up { color: #2D6A2D; font-size: 11px; }
+.trend-down { color: var(--red-mid); font-size: 11px; }
+.trend-flat { color: var(--text-muted); font-size: 11px; }
+
+/* ── Range selector ── */
+.range-selector { display: flex; gap: 6px; margin-bottom: 1rem; }
+.range-btn { padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: none; font-size: 12px; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+.range-btn.active { background: var(--g-dark); color: var(--tan-light); border-color: var(--g-dark); }
+
+/* ── Hole grid for manual entry ── */
+.hole-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.hole-table th { background: var(--g-dark); color: var(--tan-light); padding: 5px 4px; text-align: center; font-size: 10px; font-weight: 600; letter-spacing: 0.04em; }
+.hole-table td { padding: 4px; border-bottom: 1px solid var(--border-light); text-align: center; }
+.hole-table tr:nth-child(even) td { background: var(--cream); }
+.hole-table input { padding: 4px 2px; text-align: center; width: 100%; min-width: 28px; font-size: 12px; background: transparent; border: 1px solid transparent; border-radius: 4px; }
+.hole-table input:focus { border-color: var(--g-light); background: var(--white); }
+.hole-num { background: var(--g-mid) !important; color: white; font-weight: 600; font-size: 11px; width: 24px; }
+
+/* ── Scrollable table wrapper ── */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ── Course selector ── */
+.course-option-btn {
+  width: 100%; padding: 12px 14px; border-radius: 9px;
+  border: 1.5px solid var(--border); background: var(--cream);
+  cursor: pointer; text-align: left; transition: all 0.15s;
 }
-.form-section-label:first-child { margin-top: 0; }
+.course-option-btn:hover { border-color: var(--g-mid); background: var(--g-pale); }
+.course-option-btn.selected { border-color: var(--g-dark); background: var(--g-pale2); }
+.course-opt-other { border-style: dashed; }
+.course-opt-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.course-opt-detail { font-size: 12px; color: var(--text-muted); }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div>
-    <div class="header-title">Golf Journal</div>
-    <div class="header-sub">Post-round notes &amp; insights</div>
+<header class="app-header">
+  <div class="header-top">
+    <div class="app-title">Golf Journal</div>
+    <div class="app-sub">Stats · Insights · Trends</div>
   </div>
-</div>
+  <nav class="nav">
+    <button class="active" onclick="showPage('setup',this)">Setup</button>
+    <button onclick="showPage('dashboard',this)">Dashboard</button>
+    <button onclick="showPage('upload',this)">Upload Scorecard</button>
+    <button onclick="showPage('log',this)">Log Round</button>
+    <button onclick="showPage('history',this)">History</button>
+    <button onclick="showPage('brief',this)">Pre-Round Brief</button>
+  </nav>
+</header>
 
-<nav class="nav">
-  <button class="active" onclick="showPage('setup',this)">Setup</button>
-  <button onclick="showPage('log',this)">Log round</button>
-  <button onclick="showPage('history',this)">History</button>
-  <button onclick="showPage('brief',this)">Pre-round brief</button>
-</nav>
-
-<!-- SETUP -->
+<!-- ══════════════════════════════════════════════════════════ SETUP -->
 <div id="page-setup" class="page active">
   <div class="card">
-    <div class="card-title">One-time setup</div>
+    <div class="card-title">One-Time Setup</div>
+    <div class="setup-steps">
 
-    <div class="setup-step">
-      <div class="step-num">1</div>
-      <div class="step-body">
-        <div class="step-title">Create your Google Sheet</div>
-        <div class="step-desc">Row 1 must have these exact column headers:</div>
-        <div class="api-info"><code>Date &nbsp;|&nbsp; Course &nbsp;|&nbsp; Score &nbsp;|&nbsp; Conditions &nbsp;|&nbsp; Notes &nbsp;|&nbsp; Best part &nbsp;|&nbsp; Biggest miss &nbsp;|&nbsp; Carry forward</code></div>
-      </div>
-    </div>
-
-    <div class="setup-step">
-      <div class="step-num">2</div>
-      <div class="step-body">
-        <div class="step-title">Create your Google Form (for mobile logging)</div>
-        <div class="step-desc">Add 8 fields matching the columns above. In the Form go to <strong>Responses → Link to Sheets</strong> and connect it to your Sheet. This is your phone input.</div>
-      </div>
-    </div>
-
-    <div class="setup-step">
-      <div class="step-num">3</div>
-      <div class="step-body">
-        <div class="step-title">Make the Sheet publicly readable</div>
-        <div class="step-desc">Share → Anyone with the link → <strong>Viewer</strong>. This lets the app read it without a login.</div>
-      </div>
-    </div>
-
-    <div class="setup-step">
-      <div class="step-num">4</div>
-      <div class="step-body">
-        <div class="step-title">Connect your Sheet</div>
-        <div class="step-desc">Paste your Sheet ID — the string between <code>/d/</code> and <code>/edit</code> in your Sheet URL.</div>
-        <div class="connect-row">
-          <input type="text" id="sheet-id-input" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" />
-          <button class="btn-secondary" onclick="connectSheet()">Connect</button>
-          <span id="connect-badge" style="display:none;"></span>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>
+          <div class="step-title">Create your Google Sheet</div>
+          <div class="step-desc">One Sheet, two tabs. Name tab 1 <strong>Rounds</strong>, tab 2 <strong>Journal</strong>.</div>
+          <div class="step-desc"><strong>Rounds tab — Row 1 headers:</strong></div>
+          <div class="code-block">Date | Course | Tees | Rating | Slope | Weather | Temp | Wind | Time | Score | Putts | FIR% | FIR Left% | FIR Right% | FIR Short% | FIR Long% | FIR Miss Quality | GIR% | GIR Left% | GIR Right% | GIR Short% | GIR Long% | GIR Miss Quality | 1Putt% | 2Putt% | 3Putt% | OB Off Tee | OB Approach | Penalty | Par3 Avg | Par4 Avg | Par5 Avg | Up&Downs</div>
+          <div class="step-desc"><strong>Journal tab — Row 1 headers:</strong></div>
+          <div class="code-block">Date | Course | Notes | Best Part | Biggest Miss | Carry Forward | Round ID</div>
         </div>
       </div>
-    </div>
 
-    <div class="setup-step">
-      <div class="step-num">5</div>
-      <div class="step-body">
-        <div class="step-title">Add your Anthropic API key (for AI brief)</div>
-        <div class="step-desc">Get a free key at <a href="https://console.anthropic.com" target="_blank" style="color:var(--green);">console.anthropic.com</a>. Stored locally in your browser — never sent anywhere except Anthropic's API.</div>
-        <input type="text" id="api-key-input" placeholder="sk-ant-..." style="margin-top:6px;" />
-        <button class="btn-secondary" style="margin-top:8px;" onclick="saveApiKey()">Save key</button>
-        <div id="api-key-status" style="font-size:12px;color:var(--text-muted);margin-top:6px;"></div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>
+          <div class="step-title">Share your Sheet publicly (Viewer)</div>
+          <div class="step-desc">Share → Anyone with the link → <strong>Viewer</strong>. This lets the app read it without login.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div>
+          <div class="step-title">Connect your Google Sheet</div>
+          <div class="step-desc">Paste your Sheet ID — the string between <code style="background:var(--g-pale);padding:1px 4px;border-radius:3px;">/d/</code> and <code style="background:var(--g-pale);padding:1px 4px;border-radius:3px;">/edit</code> in the URL.</div>
+          <div class="connect-row" style="margin-bottom:6px;">
+            <input type="text" id="sheet-id-input" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" />
+            <button class="btn btn-secondary" onclick="connectSheet()">Connect</button>
+            <span id="connect-badge" style="display:none;"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div>
+          <div class="step-title">Add your Anthropic API key</div>
+          <div class="step-desc">Powers scorecard photo parsing AND the pre-round brief. Get a free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>. Stored locally in your browser only.</div>
+          <input type="text" id="api-key-input" placeholder="sk-ant-..." style="margin-bottom:8px;" />
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn btn-secondary btn-sm" onclick="saveApiKey()">Save Key</button>
+            <span id="api-key-status" style="font-size:12px;color:var(--text-muted);"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">5</div>
+        <div>
+          <div class="step-title">Create Google Forms for mobile input (optional but recommended)</div>
+          <div class="step-desc">Create two Google Forms — one for each tab — and link them to your Sheet via Responses → Link to Sheets. This lets you log from your phone without opening this app.</div>
+          <div class="step-desc">📱 <strong>Phone workflow:</strong> Fill Google Form after your round → open this app → Dashboard → Sync to see your updated data.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ DASHBOARD -->
+<div id="page-dashboard" class="page">
+  <div class="btn-group">
+    <button class="btn btn-secondary btn-sm" onclick="syncAll()">Sync from Sheet</button>
+    <span id="dash-sync-status" style="font-size:12px;color:var(--text-muted);line-height:2;"></span>
+  </div>
+  <div class="range-selector">
+    <button class="range-btn active" onclick="setRange(0,this)">All</button>
+    <button class="range-btn" onclick="setRange(5,this)">Last 5</button>
+    <button class="range-btn" onclick="setRange(10,this)">Last 10</button>
+    <button class="range-btn" onclick="setRange(20,this)">Last 20</button>
+  </div>
+  <div id="dashboard-content">
+    <div class="empty"><div class="empty-icon">⛳</div>Sync your Sheet to see your dashboard.</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ UPLOAD -->
+<div id="page-upload" class="page">
+
+  <!-- Step 1: Course selector -->
+  <div class="card" id="course-selector-card">
+    <div class="card-title">Step 1 — Select Course</div>
+    <div class="card-sub">Choose your course to auto-fill rating and slope.</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:1rem;">
+      <button class="course-option-btn" onclick="selectCourse('ironhorse-black')">
+        <div class="course-opt-name">Ironhorse Golf Course</div>
+        <div class="course-opt-detail">Black Tees · Rating 73.5 · Slope 144</div>
+      </button>
+      <button class="course-option-btn" onclick="selectCourse('ironhorse-blue')">
+        <div class="course-opt-name">Ironhorse Golf Course</div>
+        <div class="course-opt-detail">Blue Tees · Rating 70.9 · Slope 141</div>
+      </button>
+      <button class="course-option-btn course-opt-other" onclick="selectCourse('other')">
+        <div class="course-opt-name">Other Course</div>
+        <div class="course-opt-detail">Enter course details manually</div>
+      </button>
+    </div>
+    <!-- Other course fields — hidden until selected -->
+    <div id="other-course-fields" style="display:none;">
+      <div class="grid2">
+        <div><label>Course Name</label><input type="text" id="oc-course" placeholder="Course name" /></div>
+        <div><label>Tees</label><input type="text" id="oc-tees" placeholder="Blue" /></div>
+      </div>
+      <div class="grid2">
+        <div><label>Course Rating</label><input type="number" step="0.1" id="oc-rating" placeholder="71.2" /></div>
+        <div><label>Slope</label><input type="number" id="oc-slope" placeholder="128" /></div>
       </div>
     </div>
   </div>
+
+  <!-- Step 2: Conditions — hidden until course selected -->
+  <div class="card" id="conditions-card" style="display:none;">
+    <div class="card-title">Step 2 — Round Conditions</div>
+    <div class="grid2">
+      <div><label>Date</label><input type="text" id="p-date" /></div>
+      <div><label>Time Played</label><input type="text" id="p-time" placeholder="4:15" /></div>
+    </div>
+    <div class="grid3">
+      <div>
+        <label>Weather</label>
+        <select id="p-weather">
+          <option value="">Select...</option>
+          <option>Sunny</option>
+          <option>Partly Cloudy</option>
+          <option>Overcast</option>
+          <option>Rainy</option>
+          <option>Windy</option>
+        </select>
+      </div>
+      <div><label>Temp</label><input type="text" id="p-temp" placeholder="75°F" /></div>
+      <div><label>Wind</label><input type="text" id="p-wind" placeholder="10mph SW" /></div>
+    </div>
+    <button class="btn btn-primary" onclick="showUploadStep()">Continue to Photo Upload →</button>
+  </div>
+
+  <!-- Step 3: Photo upload — hidden until conditions filled -->
+  <div class="card" id="upload-card" style="display:none;">
+    <div class="card-title">Step 3 — Upload Scorecard Photo</div>
+    <div class="card-sub">Claude Vision reads your handwritten scorecard and computes all stats automatically.</div>
+    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+      <div class="upload-icon">📷</div>
+      <div class="upload-text">Tap to take photo or choose file</div>
+      <div class="upload-sub">JPG, PNG, HEIC supported</div>
+    </div>
+    <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none;" onchange="handleFile(event)" />
+    <img id="upload-preview" alt="Scorecard preview" />
+    <div id="parse-status"></div>
+  </div>
+
+  <div id="parsed-form" style="display:none;">
+    <div class="card">
+      <div class="card-title">Review Parsed Data</div>
+      <div class="card-sub">Claude's read of your scorecard. Edit anything that needs correcting before saving.</div>
+      <div class="form-section">Round Info</div>
+      <div class="grid2">
+        <div><label>Date</label><input type="text" id="p-date-display" readonly style="background:var(--g-pale);color:var(--text-muted);" /></div>
+        <div><label>Course</label><input type="text" id="p-course" /></div>
+      </div>
+      <div class="grid3">
+        <div><label>Tees</label><input type="text" id="p-tees" readonly style="background:var(--g-pale);color:var(--text-muted);" /></div>
+        <div><label>Course Rating</label><input type="number" step="0.1" id="p-rating" readonly style="background:var(--g-pale);color:var(--text-muted);" /></div>
+        <div><label>Slope</label><input type="number" id="p-slope" readonly style="background:var(--g-pale);color:var(--text-muted);" /></div>
+      </div>
+      <div class="grid4">
+        <div><label>Weather</label><input type="text" id="p-weather-display" readonly style="background:var(--g-pale);color:var(--text-muted);" /></div>
+        <div><label>Temp</label><input type="text" id="p-temp-display" readonly style="background:var(--g-pale);color:var(--text-muted);" /></div>
+        <div><label>Wind</label><input type="text" id="p-wind" /></div>
+        <div><label>Time Played</label><input type="text" id="p-time" /></div>
+      </div>
+      <div class="form-section">Scoring</div>
+      <div class="grid3">
+        <div><label>Score</label><input type="number" id="p-score" /></div>
+        <div><label>Total Putts</label><input type="number" id="p-putts" /></div>
+        <div><label>Up &amp; Downs</label><input type="number" id="p-updowns" /></div>
+      </div>
+      <div class="grid3">
+        <div><label>Par 3 Avg</label><input type="number" step="0.1" id="p-par3" /></div>
+        <div><label>Par 4 Avg</label><input type="number" step="0.1" id="p-par4" /></div>
+        <div><label>Par 5 Avg</label><input type="number" step="0.1" id="p-par5" /></div>
+      </div>
+      <div class="form-section">Driving Accuracy (FIR)</div>
+      <div class="grid4">
+        <div><label>FIR %</label><input type="number" id="p-fir" /></div>
+        <div><label>Left %</label><input type="number" id="p-fir-l" /></div>
+        <div><label>Right %</label><input type="number" id="p-fir-r" /></div>
+        <div><label>Short %</label><input type="number" id="p-fir-sh" /></div>
+      </div>
+      <div class="grid2">
+        <div><label>Long %</label><input type="number" id="p-fir-lo" /></div>
+        <div><label>Miss Quality (avg 1-3)</label><input type="number" step="0.1" id="p-fir-q" /></div>
+      </div>
+      <div class="form-section">Greens in Regulation (GIR)</div>
+      <div class="grid4">
+        <div><label>GIR %</label><input type="number" id="p-gir" /></div>
+        <div><label>Left %</label><input type="number" id="p-gir-l" /></div>
+        <div><label>Right %</label><input type="number" id="p-gir-r" /></div>
+        <div><label>Short %</label><input type="number" id="p-gir-sh" /></div>
+      </div>
+      <div class="grid2">
+        <div><label>Long %</label><input type="number" id="p-gir-lo" /></div>
+        <div><label>Miss Quality (avg 1-3)</label><input type="number" step="0.1" id="p-gir-q" /></div>
+      </div>
+      <div class="form-section">Putting</div>
+      <div class="grid3">
+        <div><label>1-Putt %</label><input type="number" id="p-1putt" /></div>
+        <div><label>2-Putt %</label><input type="number" id="p-2putt" /></div>
+        <div><label>3-Putt %</label><input type="number" id="p-3putt" /></div>
+      </div>
+      <div class="form-section">Penalties</div>
+      <div class="grid3">
+        <div><label>OB Off Tee</label><input type="number" id="p-ob-t" /></div>
+        <div><label>OB Approach</label><input type="number" id="p-ob-a" /></div>
+        <div><label>Other Penalties</label><input type="number" id="p-pen" /></div>
+      </div>
+      <div class="form-section">Round Notes (Journal)</div>
+      <textarea id="p-notes" placeholder="What happened out there? Swing thoughts, what worked, what didn't..."></textarea>
+      <div class="grid3">
+        <div><label>Best Part</label><input type="text" id="p-best" /></div>
+        <div><label>Biggest Miss</label><input type="text" id="p-miss" /></div>
+        <div><label>Carry Forward</label><input type="text" id="p-carry" /></div>
+      </div>
+      <button class="btn btn-primary" onclick="saveRound('parsed')">Save Round to Sheet</button>
+      <div id="save-status" style="font-size:12px;color:var(--text-muted);margin-top:8px;text-align:center;"></div>
+    </div>
+  </div>
 </div>
 
-<!-- LOG -->
+<!-- ══════════════════════════════════════════════════════════ LOG -->
 <div id="page-log" class="page">
   <div class="card">
-    <div class="form-section-label">Round details</div>
-    <div class="row2">
-      <div><label>Course</label><input type="text" id="course" placeholder="Hawk Ridge Golf Club" /></div>
-      <div><label>Date</label><input type="text" id="date" placeholder="Apr 10, 2026" /></div>
+    <div class="card-title">Log Round Manually</div>
+    <div class="form-section">Round Info</div>
+    <div class="grid2">
+      <div><label>Date</label><input type="text" id="m-date" placeholder="May 5, 2026" /></div>
+      <div><label>Course</label><input type="text" id="m-course" placeholder="Hawk Ridge Golf Club" /></div>
     </div>
-    <div class="row2" style="margin-top:12px;">
-      <div><label>Score</label><input type="number" id="score" placeholder="84" /></div>
-      <div><label>Conditions</label><input type="text" id="conditions" placeholder="Windy, soft greens..." /></div>
+    <div class="grid3">
+      <div><label>Tees</label><input type="text" id="m-tees" placeholder="Blue" /></div>
+      <div><label>Course Rating</label><input type="number" step="0.1" id="m-rating" placeholder="71.2" /></div>
+      <div><label>Slope</label><input type="number" id="m-slope" placeholder="128" /></div>
     </div>
-
-    <div class="form-section-label" style="margin-top:1.25rem;">Round notes</div>
-    <textarea id="notes" placeholder="What happened out there? What worked, what didn't, what did you notice..."></textarea>
-
-    <div class="form-section-label" style="margin-top:1.25rem;">Quick check-in</div>
-    <label>Best part of the round</label>
-    <input type="text" id="q1" placeholder="Approach shots, putting rhythm..." />
-    <label>Biggest miss or mistake pattern</label>
-    <input type="text" id="q2" placeholder="Pulling left under pressure..." />
-    <label>One thing to carry into next round</label>
-    <input type="text" id="q3" placeholder="Pause at the top, trust the release..." />
-
-    <button class="btn-primary" id="save-btn" onclick="saveRound()">Save round</button>
-  </div>
-  <div style="text-align:center;font-size:12px;color:var(--text-muted);padding-bottom:1rem;">
-    Prefer your phone? Use your <strong>Google Form</strong> — it auto-populates the Sheet instantly.
+    <div class="grid4">
+      <div><label>Weather</label><input type="text" id="m-weather" placeholder="Sunny" /></div>
+      <div><label>Temp</label><input type="text" id="m-temp" placeholder="75°F" /></div>
+      <div><label>Wind</label><input type="text" id="m-wind" placeholder="10mph SW" /></div>
+      <div><label>Time Played</label><input type="text" id="m-time" placeholder="4:15" /></div>
+    </div>
+    <div class="form-section">Scoring</div>
+    <div class="grid3">
+      <div><label>Score</label><input type="number" id="m-score" placeholder="84" /></div>
+      <div><label>Total Putts</label><input type="number" id="m-putts" placeholder="32" /></div>
+      <div><label>Up &amp; Downs</label><input type="number" id="m-updowns" /></div>
+    </div>
+    <div class="grid3">
+      <div><label>Par 3 Avg</label><input type="number" step="0.1" id="m-par3" placeholder="3.5" /></div>
+      <div><label>Par 4 Avg</label><input type="number" step="0.1" id="m-par4" placeholder="4.4" /></div>
+      <div><label>Par 5 Avg</label><input type="number" step="0.1" id="m-par5" placeholder="5.5" /></div>
+    </div>
+    <div class="form-section">Driving Accuracy (FIR)</div>
+    <div class="grid4">
+      <div><label>FIR %</label><input type="number" id="m-fir" /></div>
+      <div><label>Left %</label><input type="number" id="m-fir-l" /></div>
+      <div><label>Right %</label><input type="number" id="m-fir-r" /></div>
+      <div><label>Short %</label><input type="number" id="m-fir-sh" /></div>
+    </div>
+    <div class="grid2">
+      <div><label>Long %</label><input type="number" id="m-fir-lo" /></div>
+      <div><label>Miss Quality (avg 1-3)</label><input type="number" step="0.1" id="m-fir-q" /></div>
+    </div>
+    <div class="form-section">Greens in Regulation (GIR)</div>
+    <div class="grid4">
+      <div><label>GIR %</label><input type="number" id="m-gir" /></div>
+      <div><label>Left %</label><input type="number" id="m-gir-l" /></div>
+      <div><label>Right %</label><input type="number" id="m-gir-r" /></div>
+      <div><label>Short %</label><input type="number" id="m-gir-sh" /></div>
+    </div>
+    <div class="grid2">
+      <div><label>Long %</label><input type="number" id="m-gir-lo" /></div>
+      <div><label>Miss Quality (avg 1-3)</label><input type="number" step="0.1" id="m-gir-q" /></div>
+    </div>
+    <div class="form-section">Putting</div>
+    <div class="grid3">
+      <div><label>1-Putt %</label><input type="number" id="m-1putt" /></div>
+      <div><label>2-Putt %</label><input type="number" id="m-2putt" /></div>
+      <div><label>3-Putt %</label><input type="number" id="m-3putt" /></div>
+    </div>
+    <div class="form-section">Penalties</div>
+    <div class="grid3">
+      <div><label>OB Off Tee</label><input type="number" id="m-ob-t" /></div>
+      <div><label>OB Approach</label><input type="number" id="m-ob-a" /></div>
+      <div><label>Other Penalties</label><input type="number" id="m-pen" /></div>
+    </div>
+    <div class="form-section">Round Notes</div>
+    <textarea id="m-notes" placeholder="What happened out there? Swing thoughts, what worked, what didn't..."></textarea>
+    <div class="grid3">
+      <div><label>Best Part</label><input type="text" id="m-best" /></div>
+      <div><label>Biggest Miss</label><input type="text" id="m-miss" /></div>
+      <div><label>Carry Forward</label><input type="text" id="m-carry" /></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveRound('manual')">Save Round</button>
   </div>
 </div>
 
-<!-- HISTORY -->
+<!-- ══════════════════════════════════════════════════════════ HISTORY -->
 <div id="page-history" class="page">
-  <div class="stats-row">
-    <div class="stat-box"><div class="stat-num" id="stat-rounds">—</div><div class="stat-lbl">Rounds</div></div>
-    <div class="stat-box"><div class="stat-num" id="stat-avg">—</div><div class="stat-lbl">Avg score</div></div>
-    <div class="stat-box"><div class="stat-num" id="stat-recent">—</div><div class="stat-lbl">Last score</div></div>
+  <div class="btn-group">
+    <button class="btn btn-secondary btn-sm" onclick="syncAll()">Sync from Sheet</button>
   </div>
-  <div class="toolbar">
-    <button class="btn-secondary" onclick="fetchAndRender()">Sync from Sheet</button>
-    <span class="sync-status" id="sync-status"></span>
+  <div id="history-list">
+    <div class="empty"><div class="empty-icon">📋</div>No rounds yet. Sync your Sheet or log one manually.</div>
   </div>
-  <div id="history-list"></div>
 </div>
 
-<!-- BRIEF -->
+<!-- ══════════════════════════════════════════════════════════ BRIEF -->
 <div id="page-brief" class="page">
-  <div class="brief-controls">
-    <button class="btn-secondary" onclick="generateBrief(true)">Regenerate brief</button>
-    <button class="btn-secondary" onclick="fetchThenBrief()">Sync + regenerate</button>
+  <div class="btn-group">
+    <button class="btn btn-secondary btn-sm" onclick="generateBrief(true)">Regenerate Brief</button>
+    <button class="btn btn-secondary btn-sm" onclick="syncThenBrief()">Sync + Regenerate</button>
   </div>
-  <div id="brief-content"></div>
+  <div id="brief-content">
+    <div class="empty"><div class="empty-icon">🏌️</div>Log some rounds to generate your pre-round brief.</div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-let entries = [];
+// ══ State ══════════════════════════════════════════════════════════
+let rounds = [];
+let journal = [];
 let briefCache = null;
+let dashRange = 0;
+let chartInstances = {};
 
-// ── Storage helpers ──────────────────────────────────────────────
-function store(key, val) { try { localStorage.setItem(key, typeof val === 'string' ? val : JSON.stringify(val)); } catch(e){} }
-function retrieve(key) { try { return localStorage.getItem(key); } catch(e){ return null; } }
+// ══ Storage ════════════════════════════════════════════════════════
+const S = {
+  get: k => { try { return localStorage.getItem(k); } catch(e) { return null; } },
+  set: (k,v) => { try { localStorage.setItem(k, typeof v==='string'?v:JSON.stringify(v)); } catch(e){} },
+  getJ: k => { try { const v=localStorage.getItem(k); return v?JSON.parse(v):null; } catch(e){ return null; } }
+};
 
-// ── Init ─────────────────────────────────────────────────────────
+// ══ Init ═══════════════════════════════════════════════════════════
 function init() {
-  const sid = retrieve('gj-sheet-id');
-  if (sid) document.getElementById('sheet-id-input').value = sid;
-  const key = retrieve('gj-api-key');
-  if (key) {
-    document.getElementById('api-key-input').value = key;
-    document.getElementById('api-key-status').textContent = 'API key saved.';
-  }
-  const cached = retrieve('gj-entries');
-  if (cached) { try { entries = JSON.parse(cached); } catch(e){ entries = []; } }
-  if (sid) setBadge('connected');
+  const sid = S.get('gj2-sheet-id');
+  if (sid) { document.getElementById('sheet-id-input').value = sid; setBadge('connected'); }
+  const key = S.get('gj2-api-key');
+  if (key) { document.getElementById('api-key-input').value = key; document.getElementById('api-key-status').textContent = 'Key saved ✓'; }
+  rounds = S.getJ('gj2-rounds') || [];
+  journal = S.getJ('gj2-journal') || [];
+  // default date fields
+  const today = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  ['m-date','p-date'].forEach(id => { const el=document.getElementById(id); if(el) el.value=today; });
 }
 
-// ── Nav ──────────────────────────────────────────────────────────
+// ══ Nav ════════════════════════════════════════════════════════════
 function showPage(p, btn) {
-  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.nav button').forEach(el => el.classList.remove('active'));
-  document.getElementById('page-' + p).classList.add('active');
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
   btn.classList.add('active');
-  if (p === 'history') renderHistory();
-  if (p === 'brief') renderBrief();
+  if (p==='dashboard') renderDashboard();
+  if (p==='history') renderHistory();
+  if (p==='brief') renderBrief();
 }
 
-// ── Toast ────────────────────────────────────────────────────────
+// ══ Toast ══════════════════════════════════════════════════════════
 function toast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2600);
 }
 
-// ── API key ──────────────────────────────────────────────────────
-function saveApiKey() {
-  const key = document.getElementById('api-key-input').value.trim();
-  if (!key) return;
-  store('gj-api-key', key);
-  document.getElementById('api-key-status').textContent = 'API key saved.';
-  toast('API key saved');
-}
-
-// ── Sheet connect ────────────────────────────────────────────────
+// ══ Setup ══════════════════════════════════════════════════════════
 function setBadge(state) {
   const b = document.getElementById('connect-badge');
   b.style.display = 'inline-flex';
-  b.className = 'badge ' + (state === 'connected' ? 'badge-ok' : 'badge-err');
-  b.textContent = state === 'connected' ? '✓ Connected' : '✗ Error — check ID & sharing';
+  b.className = 'badge ' + (state==='connected'?'badge-ok':'badge-err');
+  b.textContent = state==='connected' ? '✓ Connected' : '✗ Error — check ID & sharing';
 }
-
+function saveApiKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (!key) return;
+  S.set('gj2-api-key', key);
+  document.getElementById('api-key-status').textContent = 'Key saved ✓';
+  toast('API key saved');
+}
 async function connectSheet() {
   const sid = document.getElementById('sheet-id-input').value.trim();
   if (!sid) { toast('Paste your Sheet ID first'); return; }
-  store('gj-sheet-id', sid);
-  const ok = await fetchSheet(sid);
+  S.set('gj2-sheet-id', sid);
+  const ok = await fetchAllSheets(sid);
   setBadge(ok ? 'connected' : 'error');
-  if (ok) toast('Connected — ' + entries.length + ' rounds loaded');
+  if (ok) toast('Connected — ' + rounds.length + ' rounds loaded');
 }
 
-async function fetchSheet(sid) {
-  sid = sid || retrieve('gj-sheet-id');
+// ══ Sheet fetch ════════════════════════════════════════════════════
+function parseCSV(text) {
+  const rows=[]; let row=[],field='',inQ=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(inQ){if(c==='"'&&text[i+1]==='"'){field+='"';i++;}else if(c==='"')inQ=false;else field+=c;}
+    else{if(c==='"')inQ=true;else if(c===','){row.push(field);field='';}
+    else if(c==='\n'||(c==='\r'&&text[i+1]==='\n')){row.push(field);field='';rows.push(row);row=[];if(c==='\r')i++;}
+    else field+=c;}
+  }
+  if(field||row.length){row.push(field);rows.push(row);}
+  return rows;
+}
+
+async function fetchTab(sid, gid) {
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${sid}/export?format=csv&gid=${gid}`;
+    const r = await fetch(url);
+    if (!r.ok) return null;
+    return await r.text();
+  } catch(e) { return null; }
+}
+
+async function fetchAllSheets(sid) {
+  sid = sid || S.get('gj2-sheet-id');
   if (!sid) return false;
   try {
-    const url = `https://docs.google.com/spreadsheets/d/${sid}/export?format=csv&gid=0`;
-    const resp = await fetch(url);
-    if (!resp.ok) return false;
-    const csv = await resp.text();
-    const rows = parseCSV(csv);
-    if (rows.length < 2) return true;
-    const headers = rows[0].map(h => h.toLowerCase().trim());
-    const parsed = rows.slice(1)
-      .filter(r => r.some(c => c.trim()))
-      .map(r => {
-        const obj = {};
-        headers.forEach((h, i) => obj[h] = (r[i] || '').trim());
-        return {
-          id: Math.random(),
-          date: obj['date'] || '',
-          course: obj['course'] || '',
-          score: obj['score'] || '',
-          conditions: obj['conditions'] || '',
-          notes: obj['notes'] || '',
-          q1: obj['best part'] || '',
-          q2: obj['biggest miss'] || '',
-          q3: obj['carry forward'] || '',
-          source: 'sheet'
-        };
+    // Fetch Rounds (gid=0) and Journal (gid=1 — user may need to adjust)
+    const [roundsCSV, journalCSV] = await Promise.all([
+      fetchTab(sid, 0),
+      fetchTab(sid, 1)
+    ]);
+    if (!roundsCSV) return false;
+    // Parse rounds
+    const rrows = parseCSV(roundsCSV);
+    if (rrows.length > 1) {
+      const headers = rrows[0].map(h=>h.toLowerCase().trim());
+      rounds = rrows.slice(1).filter(r=>r.some(c=>c.trim())).map(r=>{
+        const o={source:'sheet'};
+        headers.forEach((h,i)=>o[h]=(r[i]||'').trim());
+        return o;
       }).reverse();
-    const localOnly = entries.filter(e => e.source === 'local');
-    entries = [...parsed, ...localOnly];
-    store('gj-entries', entries);
+    }
+    // Parse journal
+    if (journalCSV) {
+      const jrows = parseCSV(journalCSV);
+      if (jrows.length > 1) {
+        const headers = jrows[0].map(h=>h.toLowerCase().trim());
+        const localOnly = journal.filter(j=>j.source==='local');
+        const sheetJournal = jrows.slice(1).filter(r=>r.some(c=>c.trim())).map(r=>{
+          const o={source:'sheet'};
+          headers.forEach((h,i)=>o[h]=(r[i]||'').trim());
+          return o;
+        }).reverse();
+        journal = [...sheetJournal, ...localOnly];
+      }
+    }
+    S.set('gj2-rounds', rounds);
+    S.set('gj2-journal', journal);
     return true;
   } catch(e) { return false; }
 }
 
-function parseCSV(text) {
-  const rows = [];
-  let row = [], field = '', inQ = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (inQ) {
-      if (c === '"' && text[i+1] === '"') { field += '"'; i++; }
-      else if (c === '"') inQ = false;
-      else field += c;
-    } else {
-      if (c === '"') inQ = true;
-      else if (c === ',') { row.push(field); field = ''; }
-      else if (c === '\n' || (c === '\r' && text[i+1] === '\n')) {
-        row.push(field); field = '';
-        rows.push(row); row = [];
-        if (c === '\r') i++;
-      } else field += c;
-    }
-  }
-  if (field || row.length) { row.push(field); rows.push(row); }
-  return rows;
-}
-
-async function fetchAndRender() {
-  document.getElementById('sync-status').textContent = 'Syncing...';
-  const ok = await fetchSheet();
-  document.getElementById('sync-status').textContent = ok ? 'Synced ✓' : 'Could not reach Sheet';
+async function syncAll() {
+  const status = document.getElementById('dash-sync-status');
+  if (status) status.textContent = 'Syncing...';
+  const ok = await fetchAllSheets();
+  if (status) status.textContent = ok ? `Synced ✓ — ${rounds.length} rounds` : 'Sync failed';
   briefCache = null;
+  renderDashboard();
   renderHistory();
 }
 
-async function fetchThenBrief() {
-  await fetchSheet();
+async function syncThenBrief() {
+  await fetchAllSheets();
   briefCache = null;
   generateBrief(true);
 }
 
-// ── Save round ───────────────────────────────────────────────────
-async function saveRound() {
-  const notes = document.getElementById('notes').value.trim();
-  if (!notes) { toast('Add round notes first'); return; }
-  const btn = document.getElementById('save-btn');
-  btn.disabled = true; btn.textContent = 'Saving...';
-  const entry = {
-    id: Date.now(),
-    date: document.getElementById('date').value || new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
-    course: document.getElementById('course').value || 'Unknown course',
-    score: document.getElementById('score').value || '',
-    conditions: document.getElementById('conditions').value || '',
-    notes,
-    q1: document.getElementById('q1').value,
-    q2: document.getElementById('q2').value,
-    q3: document.getElementById('q3').value,
-    source: 'local'
-  };
-  entries.unshift(entry);
-  store('gj-entries', entries);
-  briefCache = null;
-  ['course','date','score','conditions','notes','q1','q2','q3'].forEach(id => document.getElementById(id).value = '');
-  btn.disabled = false; btn.textContent = 'Save round';
-  toast('Round saved');
+// ══ Dashboard ══════════════════════════════════════════════════════
+function setRange(n, btn) {
+  dashRange = n;
+  document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderDashboard();
 }
 
-// ── History ──────────────────────────────────────────────────────
-function renderHistory() {
-  const scores = entries.map(e => parseFloat(e.score)).filter(s => !isNaN(s));
-  const avg = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : '—';
-  document.getElementById('stat-rounds').textContent = entries.length || '—';
-  document.getElementById('stat-avg').textContent = avg;
-  document.getElementById('stat-recent').textContent = entries[0]?.score || '—';
-  const list = document.getElementById('history-list');
-  if (!entries.length) {
-    list.innerHTML = '<div class="empty"><div class="empty-icon">⛳</div>No rounds yet. Connect your Sheet or log one manually.</div>';
+function getRangedRounds() {
+  if (!dashRange) return rounds;
+  return rounds.slice(0, dashRange);
+}
+
+function avg(arr) {
+  const valid = arr.filter(v=>v!==null&&v!==undefined&&!isNaN(v));
+  if (!valid.length) return null;
+  return valid.reduce((a,b)=>a+b,0)/valid.length;
+}
+
+function destroyChart(id) {
+  if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
+}
+
+function renderDashboard() {
+  const container = document.getElementById('dashboard-content');
+  const data = getRangedRounds();
+  if (!data.length) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">⛳</div>Sync your Sheet to see your dashboard.</div>';
     return;
   }
-  list.innerHTML = entries.map(e => `
-    <div class="entry-card">
-      <div class="entry-top">
-        <div>
-          <div class="entry-course">${e.course}</div>
-          <div class="entry-meta">${e.date}${e.conditions ? ' · ' + e.conditions : ''}</div>
-        </div>
-        <div style="display:flex;gap:6px;align-items:center;">
-          ${e.score ? `<span class="entry-score-pill">${e.score}</span>` : ''}
-          ${e.source === 'local' ? `<button class="del-btn" onclick="deleteEntry(${e.id})" title="Delete">×</button>` : ''}
+
+  const n = v => parseFloat(v)||0;
+  const scores = data.map(r=>n(r['score'])).filter(v=>v>0);
+  const putts  = data.map(r=>n(r['putts'])).filter(v=>v>0);
+  const fir    = data.map(r=>n(r['fir%'])).filter(v=>v>=0);
+  const gir    = data.map(r=>n(r['gir%'])).filter(v=>v>=0);
+  const putt1  = data.map(r=>n(r['1putt%']));
+  const putt3  = data.map(r=>n(r['3putt%']));
+  const firQ   = data.map(r=>n(r['fir miss quality'])).filter(v=>v>0);
+  const girQ   = data.map(r=>n(r['gir miss quality'])).filter(v=>v>0);
+  const ob     = data.map(r=>n(r['ob off tee'])+n(r['ob approach'])+n(r['penalty']));
+
+  const avgScore = avg(scores);
+  const avgPutts = avg(putts);
+  const avgFIR   = avg(fir);
+  const avgGIR   = avg(gir);
+
+  // Trend: compare first half vs second half
+  function trendArrow(arr) {
+    if (arr.length < 4) return '<span class="trend-flat">—</span>';
+    const half = Math.floor(arr.length/2);
+    const recent = avg(arr.slice(0,half));
+    const older  = avg(arr.slice(half));
+    if (recent===null||older===null) return '<span class="trend-flat">—</span>';
+    const diff = recent-older;
+    if (Math.abs(diff)<0.5) return '<span class="trend-flat">→ Stable</span>';
+    // For score/putts: lower is better; for FIR/GIR: higher is better
+    return diff; // return raw, handle per-metric below
+  }
+
+  function scoreTrend(arr) {
+    if (arr.length < 4) return '';
+    const half = Math.floor(arr.length/2);
+    const recent = avg(arr.slice(0,half));
+    const older  = avg(arr.slice(half));
+    if (recent===null||older===null) return '';
+    const diff = recent-older;
+    if (Math.abs(diff)<0.3) return '<span class="trend-flat"> → stable</span>';
+    return diff<0 ? '<span class="trend-up"> ↓ improving</span>' : '<span class="trend-down"> ↑ rising</span>';
+  }
+  function pcTrend(arr) {
+    if (arr.length < 4) return '';
+    const half = Math.floor(arr.length/2);
+    const recent = avg(arr.slice(0,half));
+    const older  = avg(arr.slice(half));
+    if (recent===null||older===null) return '';
+    const diff = recent-older;
+    if (Math.abs(diff)<1) return '<span class="trend-flat"> → stable</span>';
+    return diff>0 ? '<span class="trend-up"> ↑ improving</span>' : '<span class="trend-down"> ↓ declining</span>';
+  }
+
+  // Miss direction averages
+  function missDir(prefix) {
+    return {
+      L:  avg(data.map(r=>n(r[prefix+' left%']))),
+      R:  avg(data.map(r=>n(r[prefix+' right%']))),
+      Sh: avg(data.map(r=>n(r[prefix+' short%']))),
+      Lo: avg(data.map(r=>n(r[prefix+' long%']))),
+    };
+  }
+  const firDir = missDir('fir');
+  const girDir = missDir('gir');
+
+  // Labels for chart (last N dates reversed)
+  const labels = data.map(r=>r['date']||'').slice().reverse();
+
+  container.innerHTML = `
+    <div class="stat-grid">
+      <div class="stat-box">
+        <div class="stat-num">${avgScore?avgScore.toFixed(1):'—'}</div>
+        <div class="stat-lbl">Avg Score</div>
+        <div class="stat-sub">${scoreTrend(scores)}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">${avgPutts?avgPutts.toFixed(1):'—'}</div>
+        <div class="stat-lbl">Avg Putts</div>
+        <div class="stat-sub">${scoreTrend(putts)}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">${avgFIR!==null?avgFIR.toFixed(0)+'%':'—'}</div>
+        <div class="stat-lbl">Avg FIR</div>
+        <div class="stat-sub">${pcTrend(fir)}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">${avgGIR!==null?avgGIR.toFixed(0)+'%':'—'}</div>
+        <div class="stat-lbl">Avg GIR</div>
+        <div class="stat-sub">${pcTrend(gir)}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Score Trend</div>
+      <div class="chart-wrap"><canvas id="chart-score"></canvas></div>
+    </div>
+
+    <div class="chart-row">
+      <div class="card">
+        <div class="card-title">FIR &amp; GIR Trend</div>
+        <div class="chart-wrap-sm"><canvas id="chart-firgir"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Putts per Round</div>
+        <div class="chart-wrap-sm"><canvas id="chart-putts"></canvas></div>
+      </div>
+    </div>
+
+    <div class="chart-row">
+      <div class="card">
+        <div class="card-title">FIR Miss Direction</div>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+          <div class="chart-wrap-sm" style="width:140px;flex-shrink:0;"><canvas id="chart-fir-dir"></canvas></div>
+          <div style="font-size:12px;color:var(--text-muted);line-height:1.8;">
+            <div>⬆ Long: <strong>${firDir.Lo!==null?firDir.Lo.toFixed(0)+'%':'—'}</strong></div>
+            <div>⬇ Short: <strong>${firDir.Sh!==null?firDir.Sh.toFixed(0)+'%':'—'}</strong></div>
+            <div>⬅ Left: <strong>${firDir.L!==null?firDir.L.toFixed(0)+'%':'—'}</strong></div>
+            <div>➡ Right: <strong>${firDir.R!==null?firDir.R.toFixed(0)+'%':'—'}</strong></div>
+            <div style="margin-top:6px;">Miss Quality: <strong>${avg(firQ)?avg(firQ).toFixed(1):'—'}/3</strong></div>
+          </div>
         </div>
       </div>
-      <div class="entry-notes">${e.notes}</div>
-      ${e.q1 || e.q2 || e.q3 ? `
-      <div class="entry-qa">
-        ${e.q1 ? `<div class="qa-row">Best: <span>${e.q1}</span></div>` : ''}
-        ${e.q2 ? `<div class="qa-row">Miss: <span>${e.q2}</span></div>` : ''}
-        ${e.q3 ? `<div class="qa-row">Carry: <span>${e.q3}</span></div>` : ''}
-      </div>` : ''}
+      <div class="card">
+        <div class="card-title">GIR Miss Direction</div>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+          <div class="chart-wrap-sm" style="width:140px;flex-shrink:0;"><canvas id="chart-gir-dir"></canvas></div>
+          <div style="font-size:12px;color:var(--text-muted);line-height:1.8;">
+            <div>⬆ Long: <strong>${girDir.Lo!==null?girDir.Lo.toFixed(0)+'%':'—'}</strong></div>
+            <div>⬇ Short: <strong>${girDir.Sh!==null?girDir.Sh.toFixed(0)+'%':'—'}</strong></div>
+            <div>⬅ Left: <strong>${girDir.L!==null?girDir.L.toFixed(0)+'%':'—'}</strong></div>
+            <div>➡ Right: <strong>${girDir.R!==null?girDir.R.toFixed(0)+'%':'—'}</strong></div>
+            <div style="margin-top:6px;">Miss Quality: <strong>${avg(girQ)?avg(girQ).toFixed(1):'—'}/3</strong></div>
+          </div>
+        </div>
+      </div>
     </div>
-  `).join('');
+
+    <div class="chart-row">
+      <div class="card">
+        <div class="card-title">Putting Distribution</div>
+        <div class="chart-wrap-sm"><canvas id="chart-putting"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Penalties per Round</div>
+        <div class="chart-wrap-sm"><canvas id="chart-penalties"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Scoring by Par</div>
+      <div class="chart-wrap-sm"><canvas id="chart-bypar"></canvas></div>
+    </div>
+  `;
+
+  // Colors
+  const GREEN = '#2D5A2D', GREEN2 = '#4A7C2F', TAN = '#C4A882', RED = '#C0392B', BLUE = '#2980b9';
+  const alpha = (hex,a) => hex+'33'.slice(0,Math.round(a*255).toString(16).length+1);
+
+  const chartDefaults = {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { labels: { font: { family: 'DM Sans', size: 11 }, color: '#555' } } },
+    scales: { x: { ticks: { font:{family:'DM Sans',size:9}, color:'#888', maxTicksLimit:8 }, grid:{color:'#eee'} }, y: { ticks:{font:{family:'DM Sans',size:10},color:'#888'}, grid:{color:'#eee'} } }
+  };
+
+  // Score trend
+  destroyChart('score');
+  chartInstances['score'] = new Chart(document.getElementById('chart-score'), {
+    type: 'line',
+    data: { labels, datasets: [{ label:'Score', data:[...scores].reverse(), borderColor:GREEN, backgroundColor:GREEN+'22', tension:0.35, pointRadius:4, pointBackgroundColor:GREEN, fill:true }] },
+    options: { ...chartDefaults, plugins:{...chartDefaults.plugins, tooltip:{callbacks:{label:ctx=>'Score: '+ctx.raw}}} }
+  });
+
+  // FIR & GIR trend
+  destroyChart('firgir');
+  chartInstances['firgir'] = new Chart(document.getElementById('chart-firgir'), {
+    type: 'line',
+    data: { labels, datasets: [
+      { label:'FIR %', data:[...fir].reverse(), borderColor:GREEN, backgroundColor:GREEN+'22', tension:0.35, pointRadius:3, fill:false },
+      { label:'GIR %', data:[...gir].reverse(), borderColor:TAN, backgroundColor:TAN+'22', tension:0.35, pointRadius:3, fill:false }
+    ]},
+    options: { ...chartDefaults, scales:{...chartDefaults.scales, y:{...chartDefaults.scales.y, min:0, max:100}} }
+  });
+
+  // Putts
+  destroyChart('putts');
+  chartInstances['putts'] = new Chart(document.getElementById('chart-putts'), {
+    type: 'bar',
+    data: { labels, datasets: [{ label:'Putts', data:[...putts].reverse(), backgroundColor:GREEN+'99', borderColor:GREEN, borderWidth:1 }] },
+    options: { ...chartDefaults }
+  });
+
+  // FIR direction donut
+  destroyChart('fir-dir');
+  chartInstances['fir-dir'] = new Chart(document.getElementById('chart-fir-dir'), {
+    type: 'doughnut',
+    data: { labels:['Left','Right','Short','Long'], datasets:[{data:[firDir.L||0,firDir.R||0,firDir.Sh||0,firDir.Lo||0], backgroundColor:['#E74C3C','#3498DB','#F39C12','#2ECC71'], borderWidth:2 }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} } }
+  });
+
+  // GIR direction donut
+  destroyChart('gir-dir');
+  chartInstances['gir-dir'] = new Chart(document.getElementById('chart-gir-dir'), {
+    type: 'doughnut',
+    data: { labels:['Left','Right','Short','Long'], datasets:[{data:[girDir.L||0,girDir.R||0,girDir.Sh||0,girDir.Lo||0], backgroundColor:['#E74C3C','#3498DB','#F39C12','#2ECC71'], borderWidth:2 }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} } }
+  });
+
+  // Putting distribution
+  destroyChart('putting');
+  chartInstances['putting'] = new Chart(document.getElementById('chart-putting'), {
+    type: 'bar',
+    data: { labels, datasets: [
+      { label:'1-Putt %', data:[...putt1].reverse(), backgroundColor:GREEN+'CC' },
+      { label:'3-Putt %', data:[...putt3].reverse(), backgroundColor:RED+'99' }
+    ]},
+    options: { ...chartDefaults, scales:{...chartDefaults.scales, y:{...chartDefaults.scales.y, min:0, max:100}}, plugins:{...chartDefaults.plugins, tooltip:{mode:'index'}} }
+  });
+
+  // Penalties
+  destroyChart('penalties');
+  chartInstances['penalties'] = new Chart(document.getElementById('chart-penalties'), {
+    type: 'bar',
+    data: { labels, datasets: [{ label:'Penalties', data:[...ob].reverse(), backgroundColor:RED+'88', borderColor:RED, borderWidth:1 }] },
+    options: { ...chartDefaults }
+  });
+
+  // By par
+  const p3 = data.map(r=>parseFloat(r['par3 avg'])).filter(v=>!isNaN(v)&&v>0);
+  const p4 = data.map(r=>parseFloat(r['par4 avg'])).filter(v=>!isNaN(v)&&v>0);
+  const p5 = data.map(r=>parseFloat(r['par5 avg'])).filter(v=>!isNaN(v)&&v>0);
+  destroyChart('bypar');
+  chartInstances['bypar'] = new Chart(document.getElementById('chart-bypar'), {
+    type: 'bar',
+    data: { labels:['Par 3','Par 4','Par 5'], datasets:[
+      { label:'Your Avg', data:[avg(p3)||0,avg(p4)||0,avg(p5)||0], backgroundColor:[GREEN+'CC',TAN+'CC',BLUE+'CC'] },
+      { label:'Par', data:[3,4,5], backgroundColor:'#DDD', borderColor:'#999', borderWidth:1, type:'line', pointRadius:0 }
+    ]},
+    options: { ...chartDefaults, plugins:{...chartDefaults.plugins, legend:{...chartDefaults.plugins.legend}} }
+  });
 }
 
-function deleteEntry(id) {
-  entries = entries.filter(e => e.id !== id);
-  store('gj-entries', entries);
+// ══ History ════════════════════════════════════════════════════════
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  if (!rounds.length && !journal.length) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">📋</div>No rounds yet.</div>';
+    return;
+  }
+  // Merge rounds with journal by date+course
+  const html = rounds.map(r => {
+    const jEntry = journal.find(j => j['date']===r['date'] || j['course']===r['course']);
+    const n = v => parseFloat(v)||null;
+    return `<div class="entry-card">
+      <div class="entry-top">
+        <div>
+          <div class="entry-course">${r['course']||'Unknown Course'}</div>
+          <div class="entry-meta">${r['date']||''}${r['tees']?' · '+r['tees']:''}${r['weather']?' · '+r['weather']:''}</div>
+        </div>
+        ${r['score']?`<span class="entry-pill">${r['score']}</span>`:''}
+      </div>
+      <div class="entry-stats">
+        ${r['putts']?`<div class="entry-stat"><strong>${r['putts']}</strong> putts</div>`:''}
+        ${r['fir%']?`<div class="entry-stat">FIR <strong>${r['fir%']}%</strong></div>`:''}
+        ${r['gir%']?`<div class="entry-stat">GIR <strong>${r['gir%']}%</strong></div>`:''}
+        ${r['1putt%']?`<div class="entry-stat">1-putt <strong>${r['1putt%']}%</strong></div>`:''}
+        ${r['3putt%']?`<div class="entry-stat">3-putt <strong>${r['3putt%']}%</strong></div>`:''}
+        ${(parseFloat(r['ob off tee'])+parseFloat(r['ob approach'])+parseFloat(r['penalty']))>0?`<div class="entry-stat" style="color:var(--red);">Penalties: <strong>${(parseFloat(r['ob off tee']||0)+parseFloat(r['ob approach']||0)+parseFloat(r['penalty']||0))}</strong></div>`:''}
+      </div>
+      ${jEntry&&jEntry['notes']?`<div class="entry-notes">${jEntry['notes']}</div>`:''}
+      ${jEntry&&(jEntry['best part']||jEntry['biggest miss']||jEntry['carry forward'])?`
+      <div class="entry-qa">
+        ${jEntry['best part']?`<div class="qa-row">Best: <span>${jEntry['best part']}</span></div>`:''}
+        ${jEntry['biggest miss']?`<div class="qa-row">Miss: <span>${jEntry['biggest miss']}</span></div>`:''}
+        ${jEntry['carry forward']?`<div class="qa-row">Carry: <span>${jEntry['carry forward']}</span></div>`:''}
+      </div>`:''}
+    </div>`;
+  }).join('');
+  list.innerHTML = html || '<div class="empty">No rounds to display.</div>';
+}
+
+// ══ Upload & Parse ═════════════════════════════════════════════════
+function dragOver(e) { e.preventDefault(); document.getElementById('upload-zone').classList.add('dragover'); }
+function dragLeave(e) { document.getElementById('upload-zone').classList.remove('dragover'); }
+function dropFile(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) processImageFile(file);
+}
+function handleFile(e) {
+  const file = e.target.files[0];
+  if (file) processImageFile(file);
+}
+
+function processImageFile(file) {
+  const reader = new FileReader();
+  reader.onload = async function(ev) {
+    const b64 = ev.target.result.split(',')[1];
+    const mime = file.type || 'image/jpeg';
+    const preview = document.getElementById('upload-preview');
+    preview.src = ev.target.result;
+    preview.style.display = 'block';
+    await parseScorecard(b64, mime);
+  };
+  reader.readAsDataURL(file);
+}
+
+async function parseScorecard(b64, mime) {
+  const apiKey = S.get('gj2-api-key');
+  if (!apiKey) { document.getElementById('parse-status').innerHTML = '<div style="color:var(--red);font-size:13px;margin-bottom:1rem;">⚠ Add your Anthropic API key in Setup first.</div>'; return; }
+  document.getElementById('parse-status').innerHTML = '<div class="loading"><span class="spinner"></span>Reading scorecard...</div>';
+  document.getElementById('parsed-form').style.display = 'none';
+
+  const prompt = `You are reading a handwritten golf scorecard. Extract all available stats.
+
+The scorecard uses this notation:
+- Checkmark (✓) = FIR or GIR hit
+- Arrow (↑↓←→) = miss direction for FIR or GIR
+- Number next to arrow = miss quality (1=fringe/edge, 2=moderate miss, 3=way off/OB)
+- Bottom-left of each hole box = putts
+- Bottom-right = penalties (OB-T=OB off tee, OB-A=OB on approach, P=other penalty)
+- Circle around score = NOT birdie indicator — it means a penalty was involved
+
+Calculate percentages based on 18 holes (or 9 if only 9 holes visible).
+For par 3/4/5 averages, calculate from individual hole scores if visible.
+
+Return ONLY valid JSON, no markdown:
+{
+  "date": "",
+  "course": "",
+  "tees": "",
+  "score": null,
+  "putts": null,
+  "fir_pct": null,
+  "fir_left_pct": null,
+  "fir_right_pct": null,
+  "fir_short_pct": null,
+  "fir_long_pct": null,
+  "fir_miss_quality": null,
+  "gir_pct": null,
+  "gir_left_pct": null,
+  "gir_right_pct": null,
+  "gir_short_pct": null,
+  "gir_long_pct": null,
+  "gir_miss_quality": null,
+  "putt1_pct": null,
+  "putt2_pct": null,
+  "putt3_pct": null,
+  "ob_off_tee": null,
+  "ob_approach": null,
+  "penalty": null,
+  "par3_avg": null,
+  "par4_avg": null,
+  "par5_avg": null,
+  "up_downs": null,
+  "notes": "Any observations about the round visible on the card"
+}
+
+Use null for any field you cannot determine from the image.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1200,
+        messages: [{ role:'user', content:[
+          { type:'image', source:{ type:'base64', media_type:mime, data:b64 } },
+          { type:'text', text:prompt }
+        ]}]
+      })
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message);
+    const text = data.content.map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(text);
+    populateParsedForm(parsed);
+    // Inject course + conditions context from Step 1 & 2
+    const ctx = getCourseContext();
+    const setV = (id,val) => { const el=document.getElementById(id); if(el&&val) el.value=val; };
+    setV('p-date-display', document.getElementById('p-date')?.value || new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}));
+    setV('p-course', ctx.course);
+    setV('p-tees', ctx.tees);
+    setV('p-rating', ctx.rating);
+    setV('p-slope', ctx.slope);
+    setV('p-weather-display', document.getElementById('p-weather')?.value || '');
+    setV('p-temp-display', document.getElementById('p-temp')?.value || '');
+    document.getElementById('parse-status').innerHTML = '<div style="color:var(--g-mid);font-size:13px;margin-bottom:1rem;">✓ Scorecard read. Review and edit below before saving.</div>';
+    document.getElementById('parsed-form').style.display = 'block';
+  } catch(e) {
+    document.getElementById('parse-status').innerHTML = `<div style="color:var(--red);font-size:13px;margin-bottom:1rem;">Could not parse scorecard: ${e.message}</div>`;
+  }
+}
+
+function set(id, val) { const el=document.getElementById(id); if(el&&val!==null&&val!==undefined) el.value=val; }
+
+function populateParsedForm(p) {
+  const today = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  set('p-date', p.date||today);
+  set('p-course', p.course);
+  set('p-tees', p.tees);
+  set('p-score', p.score);
+  set('p-putts', p.putts);
+  set('p-updowns', p.up_downs);
+  set('p-par3', p.par3_avg);
+  set('p-par4', p.par4_avg);
+  set('p-par5', p.par5_avg);
+  set('p-fir', p.fir_pct);
+  set('p-fir-l', p.fir_left_pct);
+  set('p-fir-r', p.fir_right_pct);
+  set('p-fir-sh', p.fir_short_pct);
+  set('p-fir-lo', p.fir_long_pct);
+  set('p-fir-q', p.fir_miss_quality);
+  set('p-gir', p.gir_pct);
+  set('p-gir-l', p.gir_left_pct);
+  set('p-gir-r', p.gir_right_pct);
+  set('p-gir-sh', p.gir_short_pct);
+  set('p-gir-lo', p.gir_long_pct);
+  set('p-gir-q', p.gir_miss_quality);
+  set('p-1putt', p.putt1_pct);
+  set('p-2putt', p.putt2_pct);
+  set('p-3putt', p.putt3_pct);
+  set('p-ob-t', p.ob_off_tee);
+  set('p-ob-a', p.ob_approach);
+  set('p-pen', p.penalty);
+  set('p-notes', p.notes);
+}
+
+// ══ Save round ═════════════════════════════════════════════════════
+function g(id) { return document.getElementById(id)?.value?.trim()||''; }
+
+function saveRound(mode) {
+  const prefix = mode==='parsed' ? 'p-' : 'm-';
+  const entry = {
+    'date': g(prefix+'date'),
+    'course': g(prefix+'course'),
+    'tees': g(prefix+'tees'),
+    'rating': g(prefix+'rating'),
+    'slope': g(prefix+'slope'),
+    'weather': g(prefix+'weather'),
+    'temp': g(prefix+'temp'),
+    'wind': g(prefix+'wind'),
+    'time': g(prefix+'time'),
+    'score': g(prefix+'score'),
+    'putts': g(prefix+'putts'),
+    'fir%': g(prefix+'fir'),
+    'fir left%': g(prefix+'fir-l'),
+    'fir right%': g(prefix+'fir-r'),
+    'fir short%': g(prefix+'fir-sh'),
+    'fir long%': g(prefix+'fir-lo'),
+    'fir miss quality': g(prefix+'fir-q'),
+    'gir%': g(prefix+'gir'),
+    'gir left%': g(prefix+'gir-l'),
+    'gir right%': g(prefix+'gir-r'),
+    'gir short%': g(prefix+'gir-sh'),
+    'gir long%': g(prefix+'gir-lo'),
+    'gir miss quality': g(prefix+'gir-q'),
+    '1putt%': g(prefix+'1putt'),
+    '2putt%': g(prefix+'2putt'),
+    '3putt%': g(prefix+'3putt'),
+    'ob off tee': g(prefix+'ob-t'),
+    'ob approach': g(prefix+'ob-a'),
+    'penalty': g(prefix+'pen'),
+    'par3 avg': g(prefix+'par3'),
+    'par4 avg': g(prefix+'par4'),
+    'par5 avg': g(prefix+'par5'),
+    'up&downs': g(prefix+'updowns'),
+    'source': 'local'
+  };
+  const jEntry = {
+    'date': entry['date'],
+    'course': entry['course'],
+    'notes': g(prefix+'notes'),
+    'best part': g(prefix+'best'),
+    'biggest miss': g(prefix+'miss'),
+    'carry forward': g(prefix+'carry'),
+    'round id': Date.now().toString(),
+    'source': 'local'
+  };
+  rounds.unshift(entry);
+  if (jEntry['notes']||jEntry['best part']||jEntry['biggest miss']||jEntry['carry forward']) {
+    journal.unshift(jEntry);
+  }
+  S.set('gj2-rounds', rounds);
+  S.set('gj2-journal', journal);
   briefCache = null;
-  renderHistory();
-  toast('Entry deleted');
+
+  if (mode==='parsed') {
+    document.getElementById('save-status').textContent = '✓ Saved locally. Remember to also enter data in your Google Sheet for permanent storage.';
+  }
+  toast('Round saved ✓');
 }
 
-// ── Brief ────────────────────────────────────────────────────────
+// ══ Pre-round Brief ════════════════════════════════════════════════
 function renderBrief() {
   if (briefCache) { renderBriefContent(briefCache); return; }
-  if (!entries.length) {
-    document.getElementById('brief-content').innerHTML = '<div class="empty"><div class="empty-icon">📋</div>No rounds found. Sync your Sheet first.</div>';
+  if (!journal.length) {
+    document.getElementById('brief-content').innerHTML = '<div class="empty"><div class="empty-icon">🏌️</div>Log some rounds with notes to generate your brief.</div>';
     return;
   }
   generateBrief(false);
@@ -681,78 +1251,110 @@ function renderBrief() {
 
 async function generateBrief(force) {
   if (!force && briefCache) { renderBriefContent(briefCache); return; }
-  if (!entries.length) {
-    document.getElementById('brief-content').innerHTML = '<div class="empty"><div class="empty-icon">📋</div>No rounds found. Sync your Sheet first.</div>';
-    return;
-  }
-  const apiKey = retrieve('gj-api-key');
+  const apiKey = S.get('gj2-api-key');
   if (!apiKey) {
     document.getElementById('brief-content').innerHTML = '<div class="empty"><div class="empty-icon">🔑</div>Add your Anthropic API key in Setup to use this feature.</div>';
     return;
   }
+  if (!journal.length) {
+    document.getElementById('brief-content').innerHTML = '<div class="empty"><div class="empty-icon">🏌️</div>Log some rounds with notes first.</div>';
+    return;
+  }
   document.getElementById('brief-content').innerHTML = '<div class="loading"><span class="spinner"></span>Analyzing your rounds...</div>';
-  const recent5 = entries.slice(0, 5);
-  const allNotes = entries.map(e => `[${e.date} - ${e.course}] ${e.notes}${e.q1?' Best: '+e.q1:''}${e.q2?' Miss: '+e.q2:''}${e.q3?' Carry: '+e.q3:''}`).join('\n\n');
-  const recentNotes = recent5.map(e => `[${e.date} - ${e.course}] ${e.notes}${e.q1?' Best: '+e.q1:''}${e.q2?' Miss: '+e.q2:''}${e.q3?' Carry: '+e.q3:''}`).join('\n\n');
-  const prompt = `You are a golf coach reviewing a player's post-round journal. Extract actionable, specific insights.
 
-ALL ENTRIES (${entries.length} rounds):
+  // Include stats context too
+  const recent5 = journal.slice(0,5);
+  const statsCtx = rounds.slice(0,5).map(r=>`[${r['date']} - ${r['course']}] Score:${r['score']} FIR:${r['fir%']}% GIR:${r['gir%']}% Putts:${r['putts']} FIR-miss-quality:${r['fir miss quality']} GIR-miss-quality:${r['gir miss quality']}`).join('\n');
+  const allNotes = journal.map(j=>`[${j['date']} - ${j['course']}] ${j['notes']||''}${j['best part']?' Best:'+j['best part']:''}${j['biggest miss']?' Miss:'+j['biggest miss']:''}${j['carry forward']?' Carry:'+j['carry forward']:''}`).join('\n\n');
+  const recentNotes = recent5.map(j=>`[${j['date']} - ${j['course']}] ${j['notes']||''}${j['best part']?' Best:'+j['best part']:''}${j['biggest miss']?' Miss:'+j['biggest miss']:''}${j['carry forward']?' Carry:'+j['carry forward']:''}`).join('\n\n');
+
+  const prompt = `You are a golf coach reviewing a player's post-round journal and recent stats. Give practical, specific pre-round guidance.
+
+RECENT STATS (last 5 rounds):
+${statsCtx}
+
+ALL JOURNAL ENTRIES (${journal.length} rounds):
 ${allNotes}
 
-LAST 5 ENTRIES:
+LAST 5 JOURNAL ENTRIES:
 ${recentNotes}
 
-Return ONLY valid JSON — no markdown, no preamble:
-{"allTimePoints":["point1","point2","point3"],"recentPoints":["point1","point2","point3"],"watchOut":["thing1","thing2"]}
+Return ONLY valid JSON, no markdown:
+{
+  "allTimePoints": ["3-5 consistent patterns from all rounds — specific, not generic"],
+  "recentPoints": ["2-3 things working RIGHT NOW in last 5 rounds"],
+  "watchOut": ["1-2 specific recurring mistakes to stay conscious of"],
+  "statInsight": "One sentence insight connecting their stats to their notes — specific numbers"
+}
 
-Rules:
-- Be specific — reference actual patterns, not generic golf advice
-- Under 20 words per point
-- allTimePoints: 3-5 consistent themes across ALL rounds
-- recentPoints: 2-3 things working RIGHT NOW in the last 5 rounds
-- watchOut: 1-2 recurring mistakes to stay conscious of`;
+Rules: Reference actual patterns. Under 20 words per point. Use stats data where relevant.`;
 
   try {
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 800,
-        messages: [{ role: 'user', content: prompt }]
-      })
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
     });
     const data = await resp.json();
     if (data.error) throw new Error(data.error.message);
-    const text = data.content.map(b => b.text || '').join('').replace(/```json|```/g,'').trim();
-    const parsed = JSON.parse(text);
-    briefCache = parsed;
-    renderBriefContent(parsed);
+    const text = data.content.map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
+    briefCache = JSON.parse(text);
+    renderBriefContent(briefCache);
   } catch(e) {
-    document.getElementById('brief-content').innerHTML = `<div class="empty">Could not generate brief. Check your API key in Setup.<br><small style="color:#aaa;">${e.message}</small></div>`;
+    document.getElementById('brief-content').innerHTML = `<div class="empty">Could not generate brief. Check your API key.<br><small style="color:#aaa;">${e.message}</small></div>`;
   }
 }
 
 function renderBriefContent(d) {
   document.getElementById('brief-content').innerHTML = `
+    ${d.statInsight?`<div class="card" style="background:var(--g-dark);border:none;"><div style="font-size:13px;color:var(--tan-light);line-height:1.6;">📊 ${d.statInsight}</div></div>`:''}
     <div class="brief-section">
-      <div class="brief-label">Your game — all time (${entries.length} rounds)</div>
-      ${d.allTimePoints.map(p => `<div class="brief-point"><div class="brief-dot"></div><div>${p}</div></div>`).join('')}
+      <div class="brief-label">Your game — all time (${journal.length} rounds)</div>
+      ${d.allTimePoints.map(p=>`<div class="brief-point"><div class="bdot"></div><div>${p}</div></div>`).join('')}
     </div>
     <div class="brief-section">
       <div class="brief-label">What's clicking right now — last 5 rounds</div>
-      ${d.recentPoints.map(p => `<div class="brief-point"><div class="brief-dot green"></div><div>${p}</div></div>`).join('')}
+      ${d.recentPoints.map(p=>`<div class="brief-point"><div class="bdot green"></div><div>${p}</div></div>`).join('')}
     </div>
     <div class="brief-section">
       <div class="brief-label">Watch out for</div>
-      ${d.watchOut.map(p => `<div class="brief-point"><div class="brief-dot red"></div><div>${p}</div></div>`).join('')}
+      ${d.watchOut.map(p=>`<div class="brief-point"><div class="bdot red"></div><div>${p}</div></div>`).join('')}
     </div>
   `;
+}
+
+// ══ Course selector ════════════════════════════════════════════════
+const COURSES = {
+  'ironhorse-black': { course:'Ironhorse Golf Course', tees:'Black', rating:'73.5', slope:'144' },
+  'ironhorse-blue':  { course:'Ironhorse Golf Course', tees:'Blue',  rating:'70.9', slope:'141' },
+  'other': null
+};
+let selectedCourseKey = null;
+
+function selectCourse(key) {
+  selectedCourseKey = key;
+  document.querySelectorAll('.course-option-btn').forEach(b=>b.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  const otherFields = document.getElementById('other-course-fields');
+  if (key === 'other') { otherFields.style.display = 'block'; }
+  else { otherFields.style.display = 'none'; }
+  document.getElementById('conditions-card').style.display = 'block';
+  document.getElementById('conditions-card').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function showUploadStep() {
+  document.getElementById('upload-card').style.display = 'block';
+  document.getElementById('upload-card').scrollIntoView({behavior:'smooth', block:'start'});
+  const today = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const dateEl = document.getElementById('p-date');
+  if (dateEl && !dateEl.value) dateEl.value = today;
+}
+
+function getCourseContext() {
+  if (!selectedCourseKey || selectedCourseKey === 'other') {
+    return { course: document.getElementById('oc-course')?.value||'', tees: document.getElementById('oc-tees')?.value||'', rating: document.getElementById('oc-rating')?.value||'', slope: document.getElementById('oc-slope')?.value||'' };
+  }
+  return COURSES[selectedCourseKey];
 }
 
 init();
